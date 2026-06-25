@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>داشبورد PFS اراضی نیروی دریایی بوشهر - Responsive BI V12</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@latest/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<style>
+@font-face{font-family:Vazir;src:local("Vazir"),local("Vazir FD"),local("Vazirmatn")}
+:root{
+  --bg:#06101b;--bg2:#081a2b;--panel:rgba(13,34,52,.82);--panel2:rgba(18,46,68,.86);
+  --card:rgba(15,42,62,.82);--text:#eef9ff;--muted:#9eb9c8;--muted2:#6e91a4;
+  --cyan:#44d7df;--blue:#4b97ff;--green:#35d07f;--gold:#e8c36a;--red:#ff6378;--purple:#a78bfa;
+  --line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.16);--radius:24px;--side:292px;
+  --shadow:0 24px 80px rgba(0,0,0,.38);--soft:0 16px 42px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}html{height:100%;scroll-behavior:smooth}body{min-height:100%;margin:0;font-family:Vazir,Vazirmatn,Tahoma,sans-serif;color:var(--text);background:radial-gradient(circle at 12% -8%,rgba(68,215,223,.18),transparent 32%),radial-gradient(circle at 88% 5%,rgba(232,195,106,.13),transparent 34%),linear-gradient(135deg,#050d17 0%,#071a2b 52%,#09101d 100%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.72),transparent 82%)}
+button,input,select{font-family:inherit}.app{position:relative;z-index:1;display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:18px;min-height:100svh;padding:18px}.app.nav-collapsed{grid-template-columns:92px minmax(0,1fr)}
+.nav,.topbar,.card,.kpi-card,.chart-card,.control-card{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+.nav:after,.topbar:after,.card:after,.kpi-card:after,.chart-card:after,.control-card:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 36%);pointer-events:none}.nav{height:calc(100svh - 36px);position:sticky;top:18px;padding:18px;display:flex;flex-direction:column;gap:16px}.brand{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:4px 6px 14px;border-bottom:1px solid var(--line)}
+.logo{width:78px;height:78px;border-radius:24px;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.20),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.13);display:grid;place-items:center;box-shadow:0 0 46px rgba(68,215,223,.16);overflow:hidden}.logo-img{width:66px;height:66px;object-fit:contain}.logo-fallback{display:none;width:100%;height:100%;place-items:center;font-weight:950;color:var(--gold);letter-spacing:-.3px}.brand h1{margin:0;font-size:15px;line-height:1.75}.brand p{margin:0;color:var(--muted);font-size:11px}.nav-toggle{position:absolute;left:14px;top:14px;z-index:3;width:36px;height:36px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.07);color:#fff;cursor:pointer}.nav-list{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;padding:0 0 4px}.nav-item{border:1px solid transparent;background:transparent;color:var(--muted);display:flex;align-items:center;gap:12px;padding:11px;border-radius:17px;cursor:pointer;text-align:right;font-size:13px;transition:.18s ease;min-height:54px}.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;transform:translateX(-2px)}.nav-item.active{background:linear-gradient(90deg,rgba(68,215,223,.20),rgba(232,195,106,.08));border-color:rgba(68,215,223,.32);color:#fff}.nav-ico{min-width:36px;width:36px;height:36px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.075);color:var(--cyan)}.nav-ico svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.app.nav-collapsed .brand h1,.app.nav-collapsed .brand p,.app.nav-collapsed .nav-label{display:none}.app.nav-collapsed .logo{width:52px;height:52px;border-radius:18px}.app.nav-collapsed .logo-img{width:44px;height:44px}.app.nav-collapsed .brand{padding-top:42px}.app.nav-collapsed .nav-item{justify-content:center;padding:9px}.app.nav-collapsed .nav-item:hover:before{content:attr(data-title);position:absolute;right:78px;top:50%;transform:translateY(-50%);background:#06111d;border:1px solid var(--line2);padding:8px 11px;border-radius:12px;white-space:nowrap;color:#fff;font-size:12px;z-index:40;box-shadow:var(--soft)}
+.main{min-width:0;display:flex;flex-direction:column;gap:14px}.topbar{z-index:4;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.title h2{margin:0;font-size:clamp(17px,2vw,22px)}.title p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.8}.top-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.chip,.filter-pill{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:12px;line-height:1.5}.filter-pill{display:none;color:#fff;border-color:rgba(68,215,223,.34);background:rgba(68,215,223,.11)}.btn{border:0;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#06111b;font-weight:900;padding:10px 14px;cursor:pointer;transition:.18s ease}.btn:hover{filter:brightness(1.06);transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--line)}.btn.danger{background:linear-gradient(135deg,#ffd166,#ff8a65);color:#111}.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.btn.small{padding:8px 11px;border-radius:12px;font-size:12px}.slicer-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 2px}.slicer{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12px;cursor:pointer}.slicer.active{color:#08111c;background:linear-gradient(135deg,var(--cyan),var(--gold));font-weight:900}.content{display:flex;flex-direction:column;gap:14px}.page{display:none;animation:fade .18s ease}.page.active{display:block}@keyframes fade{from{opacity:.35;transform:translateY(4px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:14px;min-width:0}.grid.kpi{grid-template-columns:repeat(6,minmax(138px,1fr))}.grid.two{grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr)}.grid.two-even{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}.full-span{grid-column:1/-1}.card,.kpi-card,.chart-card,.control-card{padding:16px;min-width:0}.kpi-card{min-height:138px;cursor:default}.kpi-card.drill{cursor:pointer}.kpi-card.drill:hover{border-color:rgba(68,215,223,.38);transform:translateY(-2px)}.kpi-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;gap:10px}.metric-glyph{position:absolute;left:12px;bottom:8px;font-size:52px;font-weight:950;letter-spacing:-3px;opacity:.055;pointer-events:none;color:#fff}.metric-badge{width:35px;height:35px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06);display:grid;place-items:center;color:var(--cyan);font-size:11px;font-weight:950}.status{width:10px;height:10px;border-radius:50%;box-shadow:0 0 18px currentColor;flex:0 0 auto}.status.green{color:var(--green);background:var(--green)}.status.yellow{color:var(--gold);background:var(--gold)}.status.red{color:var(--red);background:var(--red)}.kpi-value{position:relative;z-index:1;font-size:clamp(22px,2.7vw,30px);font-weight:950;letter-spacing:-.6px;margin:14px 0 4px}.kpi-sub{position:relative;z-index:1;font-size:12px;color:var(--muted);line-height:1.85}.delta{position:relative;z-index:1;font-size:11px;border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.07);display:inline-block;margin-top:8px}.delta.up{color:var(--green)}.delta.down{color:var(--red)}.section-title{display:flex;justify-content:space-between;align-items:end;margin:18px 0 10px;gap:12px}.section-title h3{margin:0;font-size:16px}.section-title span{font-size:12px;color:var(--muted);line-height:1.7}.card-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}.chart-card h3,.control-card h3{position:relative;z-index:1;margin:0 0 12px;font-size:15px}.chart-box{position:relative;z-index:1;width:100%;height:clamp(270px,38vh,430px);min-height:0;overflow:hidden}.chart-box.tall{height:clamp(330px,48vh,560px)}.chart-box.small{height:clamp(240px,31vh,340px)}.chart-box canvas{width:100%!important;height:100%!important}.legend-note{position:relative;z-index:1;color:var(--muted);font-size:11px;line-height:1.8;margin-top:8px}.warning{position:relative;z-index:1;background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.20);color:#ffe2a0;border-radius:16px;padding:12px;font-size:12px;line-height:1.9}.good{background:rgba(53,208,127,.09);border-color:rgba(53,208,127,.18);color:#baf7d4}.bad{background:rgba(255,99,120,.10);border-color:rgba(255,99,120,.20);color:#ffc0ca}.inline-controls{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.field{margin:0}.field label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:8px;gap:10px;line-height:1.5}.field b{color:#fff;white-space:nowrap}.field input,.field select{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:14px;color:#fff;padding:10px;outline:none}.field option{background:#0b2133}.field small{display:block;color:var(--muted2);font-size:11px;margin-top:6px;line-height:1.7}.range-wrap{position:relative;padding:4px 1px 0}.range-wrap input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:12px;border-radius:999px;background:linear-gradient(90deg,rgba(68,215,223,.75),rgba(75,151,255,.68));outline:none}.range-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:23px;height:23px;border-radius:50%;background:#fff;border:4px solid var(--cyan);box-shadow:0 0 0 7px rgba(68,215,223,.10),0 8px 20px rgba(0,0,0,.35);cursor:pointer}.range-wrap input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--cyan);cursor:pointer}.range-hint{display:flex;justify-content:space-between;color:var(--muted2);font-size:10px;margin-top:5px}.dev-card{background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.045));border:1px solid var(--line);border-radius:18px;padding:13px;position:relative;z-index:1}.dev-card h4{margin:0 0 8px;font-size:13px}.infographic-mosaic{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.info-tile{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:18px;padding:13px;min-width:0}.info-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.info-title{font-size:13px;font-weight:850;line-height:1.6}.info-value{font-weight:950;font-size:18px;white-space:nowrap}.info-meta{color:var(--muted);font-size:11px;line-height:1.8;margin:6px 0 8px}.info-track{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;direction:ltr}.info-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--blue));min-width:2px}.cost .info-track span{background:linear-gradient(90deg,var(--gold),var(--red))}.table-wrap{position:relative;z-index:1;overflow:hidden}.table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:12px}.table th{color:var(--muted);font-weight:650;text-align:right;padding:8px}.table td{background:rgba(255,255,255,.052);padding:10px;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}.table td:first-child{border-radius:0 12px 12px 0;border-right:1px solid rgba(255,255,255,.07)}.table td:last-child{border-radius:12px 0 0 12px;border-left:1px solid rgba(255,255,255,.07)}.heatmap-wrap{position:relative;z-index:1;width:100%;overflow:hidden}.heatmap{display:grid;grid-template-columns:72px repeat(11,minmax(32px,1fr));gap:4px;font-size:12px}.heatmap div{min-height:42px;border-radius:11px;display:grid;place-items:center;text-align:center;padding:3px;line-height:1.4;background:rgba(255,255,255,.055)}.heatmap .axis{color:var(--muted);background:rgba(255,255,255,.035);font-size:11px}.heatmap .active-cell{outline:2px solid #fff;box-shadow:0 0 0 4px rgba(255,255,255,.13)}.cash-timeline{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.year-card{background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:18px;padding:12px;position:relative;overflow:hidden}.year-card h4{margin:0 0 9px;font-size:13px}.mini-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:7px 0;direction:ltr}.mini-bar span{display:block;height:100%;border-radius:999px}.year-metrics{font-size:11px;color:var(--muted);line-height:1.9}.guide{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.guide-step{background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:18px;padding:13px}.guide-step b{display:block;font-size:13px;margin-bottom:5px}.guide-step span{display:block;font-size:11px;color:var(--muted);line-height:1.8}.scenario-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:14px}.scenario-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}.scenario-item{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:16px;padding:12px;cursor:pointer}.scenario-item.active{border-color:rgba(68,215,223,.58);background:rgba(68,215,223,.12)}.scenario-item h4{margin:0 0 6px}.scenario-item p{margin:0;color:var(--muted);font-size:11px;line-height:1.8}.compare-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0}.compare-row div{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;font-size:12px}.compare-row b{display:block;color:var(--muted);font-weight:650;margin-bottom:4px}.mini-sidebar{position:fixed;z-index:90;left:16px;bottom:16px;width:272px;max-width:calc(100vw - 32px);background:rgba(8,23,37,.92);border:1px solid rgba(68,215,223,.25);box-shadow:0 18px 70px rgba(0,0,0,.45);backdrop-filter:blur(22px);border-radius:22px;overflow:hidden;transition:.22s ease}.mini-sidebar.collapsed{width:62px;height:62px;border-radius:20px}.mini-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}.mini-head h4{margin:0;font-size:12px}.mini-head button{border:0;background:rgba(255,255,255,.08);color:#fff;border-radius:13px;width:32px;height:32px;cursor:pointer}.mini-body{padding:10px 12px 12px;display:grid;gap:9px}.mini-sidebar.collapsed .mini-body,.mini-sidebar.collapsed .mini-head h4{display:none}.mini-sidebar.collapsed .mini-head{height:62px;padding:0;border:0;display:grid;place-items:center}.mini-sidebar.collapsed .mini-head button{width:44px;height:44px;background:linear-gradient(135deg,var(--cyan),var(--gold));color:#06111b;font-weight:950}.mini-icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2}.dashboard-footer{border:1px solid var(--line);background:rgba(12,34,52,.58);border-radius:18px;padding:10px 14px;color:var(--muted);font-size:12px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:0}.toast{position:fixed;right:18px;bottom:18px;z-index:120;background:rgba(4,14,24,.96);border:1px solid rgba(68,215,223,.32);box-shadow:var(--shadow);border-radius:16px;padding:12px 14px;font-size:12px;color:#fff;opacity:0;transform:translateY(12px);transition:.18s ease;pointer-events:none}.toast.show{opacity:1;transform:none}
+@media(max-width:1420px){:root{--side:260px}.grid.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}.inline-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.five{grid-template-columns:repeat(3,minmax(0,1fr))}.cash-timeline{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1100px){.grid.two,.grid.two-even,.scenario-layout{grid-template-columns:1fr}.grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}.guide{grid-template-columns:repeat(2,minmax(0,1fr))}.infographic-mosaic{grid-template-columns:1fr}.chart-box{height:clamp(280px,42vh,420px)}}
+@media(max-width:920px){.app,.app.nav-collapsed{display:block;padding:10px 10px 96px}.nav{position:fixed;right:10px;left:10px;bottom:10px;top:auto;height:74px;z-index:100;margin:0;padding:8px;border-radius:24px}.brand,.nav-toggle{display:none}.nav-list{height:100%;flex-direction:row;gap:6px;overflow:visible;justify-content:space-between}.nav-item{flex:1;min-width:0;min-height:0;height:58px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:7px 5px;font-size:10px;text-align:center}.nav-item:hover{transform:none}.nav-ico{width:28px;height:28px;min-width:28px;border-radius:11px}.nav-ico svg{width:16px;height:16px}.main{gap:12px}.topbar{grid-template-columns:1fr;position:relative;padding:13px;border-radius:20px}.top-actions{justify-content:flex-start}.content{gap:12px}.mini-sidebar{bottom:94px;left:10px;width:228px}.dashboard-footer{margin-bottom:0}}
+@media(max-width:680px){.grid.kpi,.grid.three,.grid.four,.grid.five,.cash-timeline,.guide,.inline-controls{grid-template-columns:1fr}.top-actions .chip{width:100%}.slicer-row{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slicer{padding:8px 6px;text-align:center;font-size:11px}.btn{padding:8px 10px;font-size:12px}.card,.kpi-card,.chart-card,.control-card{padding:12px;border-radius:20px}.kpi-card{min-height:124px}.chart-box{height:310px}.chart-box.small{height:270px}.chart-box.tall{height:360px}.section-title{display:block}.section-title span{display:block;margin-top:6px}.heatmap{grid-template-columns:52px repeat(11,minmax(22px,1fr));gap:2px;font-size:10px}.heatmap div{min-height:30px;border-radius:8px;padding:2px}.heatmap .axis{font-size:9px}.table thead{display:none}.table,.table tbody,.table tr,.table td{display:block;width:100%}.table{border-spacing:0}.table tr{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;padding:8px}.table td{display:flex;justify-content:space-between;gap:12px;background:transparent;border:0!important;border-radius:0!important;padding:7px 4px}.table td:before{content:attr(data-label);color:var(--muted);font-size:11px}.mini-sidebar{width:190px}.mini-body .field:nth-child(1),.mini-body .field:nth-child(2){display:none}.nav-item{font-size:9px}.nav-label{max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dashboard-footer{font-size:11px}}
+@media(max-width:420px){.app{padding-left:8px;padding-right:8px}.topbar{padding:11px}.title h2{font-size:16px}.title p{font-size:11px}.nav{right:8px;left:8px;height:70px}.nav-item{height:54px}.nav-label{display:none}.nav-ico{width:32px;height:32px}.kpi-value{font-size:22px}.chart-box{height:292px}.chart-box.tall{height:340px}.mini-sidebar{width:164px}.mini-head h4{font-size:10px}}
+
+
+/* V7 UX refinement patch */
+:root[data-theme="light"]{
+  --bg:#edf4f8;--bg2:#f7fbff;--panel:rgba(255,255,255,.82);--panel2:rgba(255,255,255,.94);
+  --card:rgba(255,255,255,.88);--text:#0a1d2b;--muted:#496574;--muted2:#6d8794;
+  --line:rgba(9,34,54,.12);--line2:rgba(9,34,54,.20);--shadow:0 18px 48px rgba(12,42,63,.13);--soft:0 12px 30px rgba(12,42,63,.12);
+}
+:root[data-theme="light"] body{background:radial-gradient(circle at 14% -6%,rgba(68,215,223,.22),transparent 32%),radial-gradient(circle at 86% 4%,rgba(232,195,106,.20),transparent 34%),linear-gradient(135deg,#edf6fb 0%,#f8fbff 55%,#eaf2f7 100%)}
+:root[data-theme="light"] .field option{background:#fff;color:#0a1d2b}
+:root[data-theme="light"] .logo-fallback{color:#0a1d2b}
+.app{gap:14px;padding:14px}.app.nav-collapsed{grid-template-columns:82px minmax(0,1fr)}
+.nav{height:calc(100svh - 28px);top:14px;padding:12px;gap:10px;overflow:hidden}.brand{gap:6px;padding:3px 4px 9px}.logo{width:56px;height:56px;border-radius:18px}.logo-img{width:48px;height:48px}.brand h1{font-size:13px;line-height:1.45}.brand p{font-size:10px;line-height:1.5}.nav-toggle{left:10px;top:10px;width:30px;height:30px;border-radius:11px;display:grid;place-items:center;gap:3px;padding:0}.nav-toggle span{display:block;width:14px;height:2px;border-radius:99px;background:currentColor}.nav-list{gap:6px;overflow:visible;min-height:auto;flex:1}.nav-item{min-height:44px;padding:7px 9px;border-radius:14px;font-size:12px;gap:9px}.nav-ico{min-width:31px;width:31px;height:31px;border-radius:12px}.nav-ico svg{width:17px;height:17px}.app.nav-collapsed .brand{padding-top:34px}.app.nav-collapsed .logo{width:42px;height:42px;border-radius:15px}.app.nav-collapsed .logo-img{width:36px;height:36px}.app.nav-collapsed .nav-item{min-height:42px}
+.topbar{padding:0;display:grid;grid-template-columns:1fr;gap:8px;background:transparent;border:0;box-shadow:none;backdrop-filter:none;overflow:visible}.topbar:after{display:none}.header-main,.header-tools{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;box-shadow:var(--soft);backdrop-filter:blur(18px)}.header-main:after,.header-tools:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}.header-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px}.header-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px}.title,.header-state,.tool-actions,.slicer-row{position:relative;z-index:1}.title{min-width:0}.title h2{font-size:clamp(16px,1.4vw,20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title p{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.header-state{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0}.scenario-chip{max-width:min(560px,46vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#d8eef8}.filter-pill{max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tool-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.theme-toggle{border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);border-radius:999px;padding:8px 10px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-weight:850;font-size:12px}.theme-dot{width:16px;height:16px;border-radius:50%;display:inline-block;background:linear-gradient(135deg,var(--cyan),var(--blue));box-shadow:0 0 18px rgba(68,215,223,.45)}:root[data-theme="light"] .theme-dot{background:linear-gradient(135deg,#ffb703,#fb8500)}
+.grid.kpi{grid-template-columns:repeat(6,minmax(118px,1fr));gap:10px}.card,.kpi-card,.chart-card,.control-card{padding:14px}.kpi-card{min-height:108px;padding:11px 12px;border-radius:18px}.kpi-head{font-size:11px}.kpi-head span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi-value{font-size:clamp(18px,1.65vw,24px);margin:8px 0 2px}.kpi-sub{font-size:10.5px;line-height:1.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.delta{font-size:10px;padding:3px 7px;margin-top:6px}.metric-glyph{display:none}.metric-badge{width:28px;height:28px;border-radius:11px;font-size:9.5px;background:rgba(68,215,223,.09);border-color:rgba(68,215,223,.20)}.kpi-spark{position:absolute;left:8px;right:8px;bottom:6px;height:28px;z-index:0;opacity:.42;color:var(--cyan);pointer-events:none}.kpi-spark svg{display:block;width:100%;height:100%;overflow:visible}.kpi-spark path.area{fill:currentColor;opacity:.09}.kpi-spark polyline{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.kpi-card .kpi-head,.kpi-card .kpi-value,.kpi-card .kpi-sub,.kpi-card .delta{position:relative;z-index:1}.kpi-card.red .kpi-spark{color:var(--red)}.kpi-card.yellow .kpi-spark{color:var(--gold)}.kpi-card.green .kpi-spark{color:var(--cyan)}
+.drill-flash{animation:drillFlash 1.4s ease;box-shadow:0 0 0 2px rgba(68,215,223,.65),0 24px 80px rgba(68,215,223,.16)!important}@keyframes drillFlash{0%,100%{filter:none}35%{filter:brightness(1.22)}}
+.range-wrap input[type=range]{direction:ltr;appearance:none;-webkit-appearance:none;height:12px;padding:0;border:0;background:rgba(255,255,255,.12);cursor:pointer}.range-wrap input[type=range]::-webkit-slider-thumb{position:relative;z-index:2}.range-hint{direction:ltr}.mini-body .range-wrap input[type=range]{height:10px}.field input[type=number],.field select{min-height:40px}
+@media(max-width:1420px){.grid.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi-card{min-height:104px}.header-main{grid-template-columns:1fr}.header-state{justify-content:flex-start}.scenario-chip{max-width:100%}}
+@media(min-width:921px){.nav-list{overflow:visible!important}.main{min-height:calc(100svh - 28px)}.dashboard-footer{padding:8px 12px}.chart-box.small{height:clamp(225px,29vh,320px)}}
+@media(max-width:920px){.app,.app.nav-collapsed{padding:10px 10px 92px}.nav{height:72px;padding:8px;overflow:hidden}.nav-list{overflow:visible!important}.header-main,.header-tools{border-radius:18px}.header-tools{display:block}.tool-actions{margin-top:8px}.header-state{flex-wrap:wrap}.scenario-chip,.filter-pill{max-width:100%;width:100%}.title h2,.title p{white-space:normal}.theme-toggle{padding:7px 9px}.grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-card{min-height:102px}.delta{display:none}}
+@media(max-width:680px){.grid.kpi{grid-template-columns:1fr}.kpi-card{min-height:96px}.slicer-row{grid-template-columns:repeat(3,1fr)}.tool-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.tool-actions .btn{width:100%}.header-main{padding:11px}.header-tools{padding:9px}.kpi-sub{white-space:normal}.kpi-spark{height:24px}.chart-box{height:300px}.chart-box.tall{height:350px}}
+
+
+
+/* V8 Command Center, KPI typography, cash cards, menu and light theme refinements */
+:root{--side:108px;--goodTint:rgba(53,208,127,.12);--warnTint:rgba(232,195,106,.14);--badTint:rgba(255,99,120,.13)}
+:root[data-theme="light"]{--bg:#e9f0f5;--bg2:#f5f8fb;--panel:rgba(255,255,255,.88);--panel2:rgba(255,255,255,.98);--card:rgba(255,255,255,.92);--text:#071b2a;--muted:#385768;--muted2:#627d8d;--cyan:#087e9c;--blue:#1559c7;--green:#087a46;--gold:#ad7200;--red:#b82038;--purple:#6d43c8;--line:rgba(7,27,42,.13);--line2:rgba(7,27,42,.22);--shadow:0 18px 48px rgba(7,27,42,.12);--soft:0 12px 30px rgba(7,27,42,.10);--goodTint:rgba(8,122,70,.12);--warnTint:rgba(173,114,0,.13);--badTint:rgba(184,32,56,.12)}
+:root[data-theme="light"] body:before{background:linear-gradient(rgba(7,27,42,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(7,27,42,.04) 1px,transparent 1px)}
+:root[data-theme="light"] .nav,:root[data-theme="light"] .header-main,:root[data-theme="light"] .header-tools,:root[data-theme="light"] .card,:root[data-theme="light"] .kpi-card,:root[data-theme="light"] .chart-card,:root[data-theme="light"] .control-card{background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(245,249,252,.90))}
+:root[data-theme="light"] .field input,:root[data-theme="light"] .field select{background:rgba(7,27,42,.045);color:var(--text)}
+:root[data-theme="light"] .field b,:root[data-theme="light"] .kpi-value,:root[data-theme="light"] .cash-metric strong,:root[data-theme="light"] .info-value{color:#061624}
+:root[data-theme="light"] .btn.secondary,:root[data-theme="light"] .btn.ghost,:root[data-theme="light"] .theme-toggle,:root[data-theme="light"] .chip,:root[data-theme="light"] .slicer{background:rgba(7,27,42,.045);color:var(--text);border-color:rgba(7,27,42,.13)}
+:root[data-theme="light"] .slicer.active,:root[data-theme="light"] .btn{color:#fff;background:linear-gradient(135deg,#087e9c,#1559c7)}
+:root[data-theme="light"] .btn.danger{background:linear-gradient(135deg,#ffd166,#f97316);color:#251100}
+:root[data-theme="light"] .warning{color:#694700;background:rgba(173,114,0,.10);border-color:rgba(173,114,0,.22)}
+:root[data-theme="light"] .good{color:#075c37;background:rgba(8,122,70,.10);border-color:rgba(8,122,70,.20)}
+:root[data-theme="light"] .bad{color:#8a1026;background:rgba(184,32,56,.10);border-color:rgba(184,32,56,.20)}
+.nav{width:auto}.brand{padding-bottom:10px}.brand h1{font-size:11px;line-height:1.35}.brand p{display:none}.logo{width:52px;height:52px;border-radius:17px}.logo-img{width:46px;height:46px}.nav-toggle{display:none}.nav-list{align-items:stretch;gap:8px}.nav-item{min-height:56px;justify-content:center;padding:9px;border-radius:18px}.nav-label{display:none!important}.nav-ico{width:42px;height:42px;min-width:42px;border-radius:16px;background:linear-gradient(180deg,rgba(68,215,223,.12),rgba(255,255,255,.045));border:1px solid rgba(68,215,223,.15);transition:.18s ease}.nav-ico svg{width:23px;height:23px;stroke-width:2.15}.nav-item:hover .nav-ico,.nav-item.active .nav-ico{color:#07111d;background:linear-gradient(135deg,var(--cyan),var(--gold));box-shadow:0 12px 30px rgba(68,215,223,.20)}.nav-item:hover:before{content:attr(data-title);position:absolute;right:74px;top:50%;transform:translateY(-50%);background:var(--panel2);border:1px solid var(--line2);padding:8px 12px;border-radius:13px;white-space:nowrap;color:var(--text);font-size:12px;z-index:80;box-shadow:var(--soft)}
+.command-center .header-main{display:grid;grid-template-columns:minmax(230px,1fr) minmax(420px,2fr) minmax(220px,auto);align-items:center;gap:14px;padding:13px 15px}.command-center .header-tools{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.scenario-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(94px,1fr));gap:8px;min-width:0}.scenario-token{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:16px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}.scenario-token b{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap}.scenario-token strong{font-size:13px;color:var(--text);font-weight:950;white-space:nowrap}.scenario-token.good{background:linear-gradient(135deg,var(--goodTint),rgba(255,255,255,.035));border-color:rgba(53,208,127,.22)}.scenario-token.warn{background:linear-gradient(135deg,var(--warnTint),rgba(255,255,255,.035));border-color:rgba(232,195,106,.26)}.scenario-token.bad{background:linear-gradient(135deg,var(--badTint),rgba(255,255,255,.035));border-color:rgba(255,99,120,.24)}.scenario-token.neutral{background:linear-gradient(135deg,rgba(68,215,223,.09),rgba(255,255,255,.035));border-color:rgba(68,215,223,.18)}.model-state{border:1px solid var(--line);border-radius:999px;padding:8px 11px;color:var(--muted);font-size:11px;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.045);white-space:nowrap}.model-state i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 18px var(--green)}.title h2{white-space:normal;overflow:visible;text-overflow:clip}.title p{white-space:normal;overflow:visible;text-overflow:clip;max-width:430px}.tool-actions .btn,.slicer{white-space:nowrap}
+.kpi-card{isolation:isolate}.kpi-card.green{background:radial-gradient(circle at 8% 74%,var(--goodTint),transparent 52%),linear-gradient(180deg,var(--panel2),var(--panel));border-color:rgba(53,208,127,.22)}.kpi-card.yellow{background:radial-gradient(circle at 8% 74%,var(--warnTint),transparent 52%),linear-gradient(180deg,var(--panel2),var(--panel));border-color:rgba(232,195,106,.24)}.kpi-card.red{background:radial-gradient(circle at 8% 74%,var(--badTint),transparent 52%),linear-gradient(180deg,var(--panel2),var(--panel));border-color:rgba(255,99,120,.24)}.metric-badge{display:none}.metric-glyph{display:block!important;position:absolute;left:10px;top:50%;bottom:auto;transform:translateY(-50%);font-size:clamp(38px,4vw,72px);font-weight:1000;letter-spacing:-5px;line-height:.8;opacity:.075;color:var(--text);z-index:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s ease,filter .35s ease;direction:ltr}.kpi-card:hover .metric-glyph{transform:translateY(-50%) rotate(-20deg) scale(1.12);opacity:.14;filter:blur(.1px)}.kpi-card.green .metric-glyph{color:var(--green)}.kpi-card.yellow .metric-glyph{color:var(--gold)}.kpi-card.red .metric-glyph{color:var(--red)}.kpi-card.green .delta.up{color:var(--green)}.delta.warn{color:var(--gold)}.kpi-spark{left:12px;right:12px;bottom:8px;height:30px;opacity:.34}.kpi-card.green .kpi-spark{color:var(--green)}.kpi-card.yellow .kpi-spark{color:var(--gold)}.kpi-card.red .kpi-spark{color:var(--red)}
+.cash-metric{position:relative;overflow:hidden;min-height:118px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.04));padding:13px 14px;box-shadow:var(--soft);transition:.2s ease}.cash-metric:hover{transform:translateY(-3px);border-color:rgba(68,215,223,.32)}.cash-metric.green{background:radial-gradient(circle at 10% 75%,var(--goodTint),transparent 54%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.04))}.cash-metric.yellow{background:radial-gradient(circle at 10% 75%,var(--warnTint),transparent 54%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.04))}.cash-metric.red{background:radial-gradient(circle at 10% 75%,var(--badTint),transparent 54%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.04))}.cash-glyph{position:absolute;left:8px;bottom:2px;font-size:56px;font-weight:1000;letter-spacing:-4px;opacity:.07;direction:ltr;color:var(--text);transition:.25s ease}.cash-metric:hover .cash-glyph{transform:rotate(-14deg) scale(1.1);opacity:.13}.cash-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}.cash-metric strong{position:relative;z-index:1;display:block;margin-top:13px;font-size:clamp(19px,2vw,28px);font-weight:950;letter-spacing:-.6px}.cash-metric small{position:relative;z-index:1;color:var(--muted);font-size:11px}.cash-spark{position:absolute;left:12px;right:12px;bottom:9px;height:28px;opacity:.30;color:var(--cyan)}.cash-metric.green .cash-spark{color:var(--green)}.cash-metric.yellow .cash-spark{color:var(--gold)}.cash-metric.red .cash-spark{color:var(--red)}.cash-spark svg{width:100%;height:100%}.cash-spark path.area{fill:currentColor;opacity:.08}.cash-spark polyline{stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}.year-card{transition:.2s ease;border-color:var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.035))}.year-card:hover{transform:translateY(-3px);border-color:rgba(68,215,223,.30);box-shadow:var(--soft)}.year-card.positive{background:radial-gradient(circle at 12% 80%,var(--goodTint),transparent 48%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.035))}.year-card.warning-state{background:radial-gradient(circle at 12% 80%,var(--warnTint),transparent 48%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.035))}.year-watermark{position:absolute;left:7px;bottom:-3px;font-size:54px;font-weight:1000;letter-spacing:-5px;color:var(--text);opacity:.045;direction:ltr}.year-metrics{display:flex!important;justify-content:space-between;gap:10px;align-items:center;font-size:11px;color:var(--muted);line-height:1.5}.year-metrics b{font-weight:700;color:var(--muted)}.year-metrics span{font-weight:850;color:var(--text)}
+@media(min-width:1421px){.header-state{justify-content:flex-end}.grid.kpi{grid-template-columns:repeat(6,minmax(0,1fr))}.grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1420px) and (min-width:921px){:root{--side:96px}.command-center .header-main{grid-template-columns:minmax(240px,1fr) minmax(360px,1.5fr);grid-template-areas:"title state" "chips chips"}.title{grid-area:title}.scenario-strip{grid-area:chips}.header-state{grid-area:state}.scenario-strip{grid-template-columns:repeat(5,minmax(0,1fr))}.command-center .header-tools{grid-template-columns:1fr}.tool-actions{justify-content:flex-start}.nav-item:hover:before{right:66px}}
+@media(max-width:1100px) and (min-width:921px){.scenario-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.scenario-token{padding:7px 9px}.tool-actions .btn{padding:8px 10px}.slicer{padding:8px 10px}}
+@media(max-width:920px){:root{--side:292px}.brand{display:none}.nav-item:hover:before{display:none}.nav-label{display:block!important}.command-center .header-main{display:grid;grid-template-columns:1fr;gap:10px}.scenario-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.header-state{justify-content:flex-start}.model-state{display:none}.command-center .header-tools{display:block}.slicer-row{display:grid;grid-template-columns:repeat(3,1fr)}.tool-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.tool-actions .btn{width:100%}.filter-pill{width:100%}.metric-glyph{font-size:54px}.cash-metric{min-height:108px}.nav-ico{width:32px;height:32px;min-width:32px}.nav-ico svg{width:18px;height:18px}}
+@media(max-width:520px){.nav-label{display:none!important}.scenario-strip{grid-template-columns:1fr}.scenario-token{padding:7px 9px}.tool-actions{grid-template-columns:1fr}.cash-metric{min-height:102px}.metric-glyph{font-size:46px;letter-spacing:-4px}.grid.kpi{grid-template-columns:1fr}}
+
+
+/* V9 compact header, logo-driven menu and always-visible reset */
+.app.nav-expanded{grid-template-columns:244px minmax(0,1fr)}
+.logo{cursor:pointer;transition:.22s ease;position:relative}
+.logo:after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:1px solid transparent;transition:.22s ease;pointer-events:none}
+.logo:hover{background:linear-gradient(180deg,rgba(180,190,198,.22),rgba(180,190,198,.08));box-shadow:0 0 34px rgba(180,190,198,.22);transform:translateY(-1px)}
+.logo:hover:after{border-color:rgba(180,190,198,.42)}
+.logo:hover .logo-img{filter:grayscale(1) saturate(0) contrast(.92);opacity:.86}
+.logo:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+.app.nav-expanded .brand{align-items:center;padding-bottom:12px}
+.app.nav-expanded .brand h1{display:block!important;font-size:13px;line-height:1.45}
+.app.nav-expanded .brand p{display:block!important;font-size:10px;color:var(--muted)}
+.app.nav-expanded .nav-label{display:inline!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.nav-expanded .nav-item{justify-content:flex-start;min-height:46px;padding:8px 10px}
+.app.nav-expanded .nav-item:hover:before{display:none}
+.app.nav-expanded .nav-ico{width:34px;height:34px;min-width:34px;border-radius:13px}
+.app.nav-expanded .nav-ico svg{width:19px;height:19px}
+.compact-header{gap:0!important;overflow:visible!important}
+.compact-header .header-main{overflow:visible!important}
+.compact-header .header-main{display:grid!important;grid-template-columns:minmax(190px,.75fr) minmax(420px,1.35fr) auto!important;align-items:center;gap:12px;padding:8px 10px!important;border-radius:18px;min-height:64px}
+.compact-header .header-main:after{opacity:.72}
+.compact-header .title h2{font-size:clamp(15px,1.25vw,18px);line-height:1.35;margin:0;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.compact-header .title p{font-size:10.5px;line-height:1.5;margin-top:2px;max-width:360px;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:var(--muted)}
+.header-tools{display:none!important}
+.header-actions{position:relative;z-index:2;display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;flex-wrap:nowrap}
+.scenario-strip.micro{display:flex!important;align-items:center;justify-content:center;gap:6px;min-width:0;overflow:hidden}
+.scenario-strip.micro .scenario-token{height:30px;min-width:auto;border-radius:999px;padding:5px 9px;gap:6px;display:inline-flex;flex:0 1 auto;box-shadow:none}
+.scenario-strip.micro .scenario-token b{font-size:10px;line-height:1;color:var(--muted)}
+.scenario-strip.micro .scenario-token strong{font-size:11.5px;line-height:1;color:var(--text);letter-spacing:-.2px}
+.action-dropdown{position:relative;z-index:20}
+.action-dropdown summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.065);color:var(--text);border-radius:13px;min-height:34px;padding:8px 11px;font-size:11.5px;font-weight:850;display:flex;align-items:center;gap:6px;white-space:nowrap;user-select:none}
+.action-dropdown summary::-webkit-details-marker{display:none}
+.action-dropdown summary:after{content:"⌄";font-size:12px;color:var(--muted);line-height:1;transition:.18s ease}
+.action-dropdown[open] summary{border-color:rgba(68,215,223,.34);background:rgba(68,215,223,.10)}
+.action-dropdown[open] summary:after{transform:rotate(180deg)}
+.action-menu{position:absolute;left:0;top:calc(100% + 8px);min-width:156px;background:var(--panel2);border:1px solid var(--line2);box-shadow:var(--shadow);border-radius:16px;padding:7px;display:grid;gap:5px;z-index:90;backdrop-filter:blur(22px)}
+.menu-action{border:0;background:transparent;color:var(--text);text-align:right;border-radius:11px;padding:9px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;justify-content:flex-start;white-space:nowrap}
+.menu-action:hover{background:rgba(68,215,223,.11)}
+.menu-action .theme-dot{width:13px;height:13px;flex:0 0 auto}
+.reset-btn{min-height:34px;padding:8px 12px!important;border-radius:13px!important;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 10px 26px rgba(255,138,101,.12)}
+.reset-icon{font-size:15px;font-weight:950;line-height:1;display:inline-block}
+.reset-label{display:inline}
+.filter-pill{height:30px;padding:5px 9px;font-size:10.5px;max-width:190px}
+.nav-ico{position:relative}
+.nav-ico:after{content:"";position:absolute;inset:7px;border-radius:10px;background:radial-gradient(circle,rgba(68,215,223,.14),transparent 70%);opacity:0;transition:.18s ease;pointer-events:none}
+.nav-item:hover .nav-ico:after,.nav-item.active .nav-ico:after{opacity:1}
+@media(min-width:1421px){.compact-header .header-main{grid-template-columns:minmax(240px,.75fr) minmax(520px,1.55fr) auto!important}.scenario-strip.micro{justify-content:center}.compact-header .title p{max-width:430px}}
+@media(max-width:1420px) and (min-width:921px){:root{--side:108px}.compact-header .header-main{grid-template-columns:minmax(190px,.8fr) minmax(360px,1.25fr) auto!important;grid-template-areas:none!important}.compact-header .title{grid-area:auto!important}.compact-header .scenario-strip{grid-area:auto!important}.compact-header .header-actions{grid-area:auto!important}.compact-header .title p{display:none}.scenario-strip.micro{justify-content:flex-start}.scenario-strip.micro .scenario-token{padding:5px 7px}.action-dropdown summary{padding:8px 9px}.reset-btn{padding:8px 10px!important}.app.nav-expanded{grid-template-columns:230px minmax(0,1fr)}}
+@media(max-width:1180px) and (min-width:921px){.compact-header .header-main{grid-template-columns:1fr!important;gap:7px;min-height:unset;padding:8px!important}.header-actions{justify-content:flex-start;flex-wrap:wrap}.scenario-strip.micro{justify-content:flex-start;flex-wrap:wrap}.scenario-strip.micro .scenario-token{height:28px}.grid.kpi{margin-top:0}}
+@media(max-width:920px){.compact-header .header-main{grid-template-columns:1fr!important;gap:7px;padding:8px!important;border-radius:17px;min-height:unset}.compact-header .title h2{font-size:15px}.compact-header .title p{display:none}.scenario-strip.micro{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.scenario-strip.micro::-webkit-scrollbar{display:none}.scenario-strip.micro .scenario-token{height:27px;padding:5px 8px;flex:0 0 auto}.header-actions{justify-content:flex-start;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.header-actions::-webkit-scrollbar{display:none}.reset-btn{width:36px;height:34px;min-width:36px;justify-content:center;padding:0!important}.reset-label{display:none}.action-dropdown summary{height:34px;min-height:34px;padding:8px 10px;font-size:11px}.action-menu{right:0;left:auto}.filter-pill{display:none!important}.nav .logo{pointer-events:none}.app.nav-expanded{display:block}.nav-label{display:none!important}}
+@media(max-width:520px){.scenario-strip.micro .scenario-token b{font-size:9.5px}.scenario-strip.micro .scenario-token strong{font-size:10.5px}.action-dropdown summary{font-size:10.5px;padding:8px}.header-actions{gap:5px}}
+
+/* V9 laptop header stays compact down to tablet breakpoint */
+@media(max-width:1180px) and (min-width:921px){.compact-header .header-main{grid-template-columns:minmax(160px,.65fr) minmax(320px,1.15fr) auto!important;gap:8px!important;min-height:58px!important;padding:7px 8px!important}.header-actions{justify-content:flex-end!important;flex-wrap:nowrap!important}.scenario-strip.micro{justify-content:center!important;flex-wrap:nowrap!important}.scenario-strip.micro .scenario-token{height:27px;padding:4px 7px}.action-dropdown summary{height:32px;min-height:32px;padding:7px 8px;font-size:10.8px}.reset-btn{height:32px;min-height:32px;padding:7px 9px!important}.compact-header .title h2{font-size:15px}.compact-header .title p{display:none}.grid.kpi{margin-top:0}}
+
+
+
+/* V10 UX fixes: fixed nav tooltip, mobile brand, readable labels, chart scroll-safe zoom */
+.nav,.nav-list{overflow:visible!important}
+.app.nav-collapsed .nav-item:hover:before,.nav-item:hover:before{display:none!important;content:none!important}
+.nav-float-tooltip{position:fixed;z-index:99999;opacity:0;pointer-events:none;transform:translateY(-50%) translateX(8px);background:rgba(3,12,22,.98);border:1px solid rgba(68,215,223,.38);box-shadow:0 18px 48px rgba(0,0,0,.36);color:#fff;border-radius:13px;padding:8px 12px;font-size:12px;white-space:nowrap;transition:opacity .12s ease,transform .12s ease;backdrop-filter:blur(18px)}
+.nav-float-tooltip.show{opacity:1;transform:translateY(-50%) translateX(0)}
+:root[data-theme="light"] .nav-float-tooltip{background:rgba(255,255,255,.98);color:#071b2a;border-color:rgba(8,126,156,.30);box-shadow:0 14px 36px rgba(7,27,42,.18)}
+.mobile-logo{display:none;border:1px solid var(--line);background:rgba(255,255,255,.055);width:38px;height:38px;border-radius:14px;padding:3px;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--soft);transition:.18s ease;position:relative;z-index:3}
+.mobile-logo img{width:30px;height:30px;object-fit:contain;display:block}.mobile-logo:hover,.mobile-logo:focus-visible{background:rgba(180,190,198,.16);filter:grayscale(.65);outline:none;transform:translateY(-1px)}
+.chart-box canvas{touch-action:pan-y pinch-zoom!important}.chart-card{overscroll-behavior:contain}.nav-ico svg{stroke-width:2.35!important}.nav-item.active .nav-ico{box-shadow:0 0 0 1px rgba(255,255,255,.16),0 12px 30px rgba(68,215,223,.22)}
+@media(max-width:920px){
+  .compact-header .header-main{grid-template-columns:auto minmax(0,1fr)!important;grid-template-areas:"logo title" "chips chips" "actions actions";align-items:center}
+  .mobile-logo{display:inline-flex;grid-area:logo}.compact-header .title{grid-area:title}.scenario-strip.micro{grid-area:chips}.header-actions{grid-area:actions}
+  .nav{z-index:9990}.nav-label{display:none!important}.nav-item:after{content:attr(data-short);display:block;font-size:9.5px;line-height:1;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nav-item.active:after{color:var(--text);font-weight:900}
+  .nav-item{gap:5px}.nav-ico{width:30px!important;height:30px!important;min-width:30px!important}.nav-ico svg{width:18px!important;height:18px!important;stroke-width:2.45!important}
+  .app.mobile-nav-open .nav{height:86px}.app.mobile-nav-open .nav-item:after{font-size:10px;color:var(--text)}
+}
+@media(max-width:420px){.nav-label{display:none!important}.nav-item:after{display:block!important}.nav{height:74px}.nav-item{height:58px}.nav-ico{width:29px!important;height:29px!important;min-width:29px!important}.compact-header .title h2{font-size:14px}.mobile-logo{width:34px;height:34px;border-radius:12px}.mobile-logo img{width:27px;height:27px}}
+
+
+/* V11 stability fixes: true collapsed/expanded rail, real mobile bar, and scroll-safe charts */
+@media(min-width:921px){
+  .app:not(.nav-expanded){grid-template-columns:82px minmax(0,1fr)!important}
+  .app:not(.nav-expanded) .nav{padding:12px 10px!important;overflow:visible!important}
+  .app:not(.nav-expanded) .brand{padding-top:34px!important;padding-bottom:10px!important}
+  .app:not(.nav-expanded) .brand h1,.app:not(.nav-expanded) .brand p,.app:not(.nav-expanded) .nav-label{display:none!important}
+  .app:not(.nav-expanded) .logo{width:42px!important;height:42px!important;border-radius:15px!important}
+  .app:not(.nav-expanded) .logo-img{width:36px!important;height:36px!important}
+  .app:not(.nav-expanded) .nav-list{display:flex!important;flex-direction:column!important;gap:7px!important;align-items:center!important;overflow:visible!important;padding-bottom:8px!important}
+  .app:not(.nav-expanded) .nav-item{width:50px!important;height:46px!important;min-height:46px!important;max-height:46px!important;padding:6px!important;justify-content:center!important;align-items:center!important;border-radius:15px!important;overflow:visible!important;transform:none!important}
+  .app:not(.nav-expanded) .nav-ico{width:34px!important;height:34px!important;min-width:34px!important;border-radius:13px!important}
+  .app:not(.nav-expanded) .nav-ico svg{width:20px!important;height:20px!important;stroke-width:2.45!important}
+  .app.nav-expanded .nav{overflow:hidden!important}
+  .app.nav-expanded .nav-list{overflow:hidden!important}
+  .app.nav-expanded .nav-label{display:inline!important;white-space:normal!important;line-height:1.55!important;font-size:12px!important;max-width:150px!important}
+  .app.nav-expanded .nav-item{width:100%!important;justify-content:flex-start!important;align-items:center!important;gap:10px!important;min-height:48px!important;height:auto!important;padding:8px 10px!important;overflow:hidden!important}
+}
+.mobile-top-fixed{display:none}
+@media(max-width:920px){
+  .mobile-top-fixed{position:fixed;top:8px;right:8px;left:8px;height:50px;z-index:10080;display:flex;align-items:center;gap:10px;padding:7px 9px;border:1px solid var(--line);border-radius:18px;background:rgba(9,25,40,.94);box-shadow:0 16px 44px rgba(0,0,0,.34);backdrop-filter:blur(22px)}
+  :root[data-theme="light"] .mobile-top-fixed{background:rgba(248,251,253,.96);box-shadow:0 12px 30px rgba(7,27,42,.14)}
+  .mobile-fixed-logo,.mobile-fixed-reset{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);width:36px;height:36px;min-width:36px;border-radius:13px;display:grid;place-items:center;cursor:pointer}
+  .mobile-fixed-logo img{width:29px;height:29px;object-fit:contain;transition:.18s ease}.mobile-fixed-logo:hover img{filter:grayscale(1) saturate(0);opacity:.85}
+  .mobile-fixed-reset{font-weight:950;font-size:18px;background:linear-gradient(135deg,#ffd166,#ff8a65);color:#111}
+  .mobile-top-fixed strong{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;line-height:1.3;color:var(--text)}
+  .app,.app.nav-collapsed{padding-top:68px!important}
+  .compact-header .mobile-logo{display:none!important}
+  .nav{overflow:hidden!important;z-index:10070!important}
+  .nav-list{overflow:hidden!important;align-items:center!important}
+  .nav-item{overflow:hidden!important;min-width:0!important;max-width:calc((100vw - 36px)/7)!important}
+  .nav-ico{flex:0 0 auto!important}
+  .nav-label{display:none!important}
+  .nav-item:after{content:attr(data-short);display:block!important;font-size:9.5px!important;line-height:1!important;color:var(--muted);max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nav-item.active:after{color:var(--text)!important;font-weight:900}
+}
+.chart-card{overscroll-behavior:auto!important}
+.chart-box,.chart-box canvas{overscroll-behavior:auto!important}
+.chart-box canvas{touch-action:pan-y pinch-zoom!important}
+
+
+
+/* V12 mobile layout: non-overlapping smart top bar + fixed bottom navigation */
+@media(max-width:920px){
+  body{padding:0!important;overflow-x:hidden!important}
+  .mobile-top-fixed{
+    position:sticky!important;
+    top:0!important;
+    right:auto!important;
+    left:auto!important;
+    width:auto!important;
+    margin:8px 8px 8px!important;
+    height:52px!important;
+    z-index:10080!important;
+    display:flex!important;
+    border-radius:18px!important;
+    transform:translateY(0)!important;
+    transition:transform .24s ease,opacity .2s ease,margin .2s ease!important;
+  }
+  .mobile-top-fixed.mobile-top-hidden{
+    transform:translateY(calc(-100% - 12px))!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+  .mobile-fixed-logo{cursor:default!important;pointer-events:none!important}
+  .mobile-fixed-logo img{filter:none!important;opacity:1!important}
+  .mobile-fixed-reset{cursor:pointer!important}
+  .app,.app.nav-collapsed,.app.nav-expanded{
+    display:block!important;
+    padding:0 10px calc(96px + env(safe-area-inset-bottom,0px))!important;
+    min-height:unset!important;
+  }
+  .main{display:block!important;gap:0!important}
+  .topbar.command-center.compact-header{display:none!important}
+  .content{padding-top:0!important;gap:12px!important}
+  .nav{
+    position:fixed!important;
+    top:auto!important;
+    right:8px!important;
+    left:8px!important;
+    bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+    z-index:10070!important;
+    margin:0!important;
+    padding:8px 6px!important;
+    border-radius:24px!important;
+    display:block!important;
+    overflow:hidden!important;
+  }
+  .brand,.nav-toggle{display:none!important}
+  .nav-list{
+    height:100%!important;
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:4px!important;
+    align-items:center!important;
+    justify-content:stretch!important;
+    overflow:hidden!important;
+    padding:0!important;
+  }
+  .nav-item{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:62px!important;
+    min-height:62px!important;
+    max-height:62px!important;
+    padding:5px 2px!important;
+    border-radius:17px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    transform:none!important;
+    overflow:hidden!important;
+    text-align:center!important;
+  }
+  .nav-item:hover{transform:none!important}
+  .nav-label{display:none!important}
+  .nav-ico{
+    width:31px!important;
+    height:31px!important;
+    min-width:31px!important;
+    border-radius:12px!important;
+    margin:0!important;
+  }
+  .nav-ico svg{width:18px!important;height:18px!important;stroke-width:2.55!important}
+  .nav-item:after{
+    content:attr(data-short)!important;
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    color:var(--muted)!important;
+    font-size:9.5px!important;
+    line-height:1.1!important;
+    font-weight:650!important;
+  }
+  .nav-item.active:after{color:var(--text)!important;font-weight:950!important}
+  .mini-sidebar{bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
+  .dashboard-footer{margin-bottom:0!important}
+}
+@media(max-width:420px){
+  .mobile-top-fixed{height:50px!important;margin:6px 6px 7px!important;border-radius:17px!important}
+  .mobile-fixed-logo,.mobile-fixed-reset{width:34px!important;height:34px!important;min-width:34px!important;border-radius:12px!important}
+  .mobile-fixed-logo img{width:27px!important;height:27px!important}
+  .mobile-top-fixed strong{font-size:12.5px!important}
+  .app,.app.nav-collapsed,.app.nav-expanded{padding-left:8px!important;padding-right:8px!important;padding-bottom:calc(91px + env(safe-area-inset-bottom,0px))!important}
+  .nav{right:6px!important;left:6px!important;height:74px!important;min-height:74px!important;max-height:74px!important;padding:7px 5px!important;border-radius:22px!important}
+  .nav-item{height:60px!important;min-height:60px!important;max-height:60px!important;padding:5px 1px!important;gap:4px!important;border-radius:15px!important}
+  .nav-ico{width:29px!important;height:29px!important;min-width:29px!important}
+  .nav-ico svg{width:17px!important;height:17px!important}
+  .nav-item:after{font-size:8.7px!important;max-width:100%!important}
+}
+
+</style>
+</head>
+
+<body>
+<div class="mobile-top-fixed" id="mobileTopFixed">
+  <button class="mobile-fixed-logo" id="mobileFixedLogo" type="button" title="لوگوی مشاور">
+    <img src="https://s41.uupload.ir/files/hamidrezatrb/logo.png" alt="لوگوی مشاور">
+  </button>
+  <strong id="mobileFixedTitle">نمای مدیریتی پروژه</strong>
+  <button class="mobile-fixed-reset" id="mobileFixedReset" type="button" title="بازنشانی">↺</button>
+</div>
+<div class="app" id="app">
+  <aside class="nav">
+    <button class="nav-toggle" id="navToggle" title="جمع کردن منو"><span></span><span></span><span></span></button>
+    <div class="brand">
+      <div class="logo" id="logoToggle" role="button" tabindex="0" title="باز و بسته کردن منو">
+        <img class="logo-img" src="https://s41.uupload.ir/files/hamidrezatrb/logo.png" alt="لوگوی مشاور" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+        <span class="logo-fallback">آتک</span>
+      </div>
+      <div>
+        <h1>داشبورد PFS بوشهر</h1>
+        <p>تصمیم‌یار مالی و مدیریتی</p>
+      </div>
+    </div>
+    <div class="nav-list" id="navList"></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar command-center compact-header">
+      <div class="header-main">
+        <button class="mobile-logo" id="mobileLogoToggle" type="button" title="لوگوی مشاور">
+          <img src="https://s41.uupload.ir/files/hamidrezatrb/logo.png" alt="لوگوی مشاور">
+        </button>
+        <div class="title">
+          <h2 id="pageTitle">نمای مدیریتی پروژه</h2>
+          <p id="pageSub">کارت‌های کلیدی، وضعیت ریسک و خلاصه شاخص‌های مالی</p>
+        </div>
+        <div class="scenario-strip micro" id="scenarioStrip" aria-label="سناریوی جاری"></div>
+        <div class="header-actions">
+          <button class="btn danger reset-btn" id="resetTop" type="button" title="بازنشانی سناریو">
+            <span class="reset-icon">↺</span><span class="reset-label">بازنشانی</span>
+          </button>
+          <details class="action-dropdown">
+            <summary>سناریوها</summary>
+            <div class="action-menu">
+              <button class="menu-action" data-preset="base">پایه</button>
+              <button class="menu-action" data-preset="opportunity">فرصت</button>
+              <button class="menu-action" data-preset="pressure">فشار</button>
+              <button class="menu-action" id="saveScenarioTop">ذخیره سناریو</button>
+            </div>
+          </details>
+          <details class="action-dropdown">
+            <summary>خروجی</summary>
+            <div class="action-menu">
+              <button class="menu-action" id="exportExcelTop">خروجی Excel</button>
+              <button class="menu-action" onclick="window.print()">خروجی PDF</button>
+            </div>
+          </details>
+          <details class="action-dropdown">
+            <summary>تنظیمات</summary>
+            <div class="action-menu">
+              <button class="menu-action" id="themeToggle" type="button"><span class="theme-dot"></span><span id="themeLabel">Dark</span></button>
+              <button class="menu-action" id="clearFilters">پاک‌سازی فیلتر</button>
+            </div>
+          </details>
+          <span class="filter-pill" id="filterPill"></span>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="page active" data-page="overview">
+        <div class="grid kpi" id="kpiGrid"></div>
+        <div class="section-title"><h3>تصویر مالی سناریوی جاری</h3><span>روند مالی و ترکیب درآمدی سناریوی جاری</span></div>
+        <div class="grid two">
+          <div class="chart-card"><h3>جریان نقدی آزاد تجمعی</h3><div class="chart-box" id="chartCum"></div></div>
+          <div class="chart-card"><h3>ترکیب درآمدی</h3><div class="chart-box small" id="chartRevenueMix"></div><div id="smartMessage" class="warning good"></div></div>
+        </div>
+        <div class="section-title"><h3>شاخص‌های ریسک</h3><span>حاشیه ایمنی، کسری نقدی و وضعیت توجیه‌پذیری</span></div>
+        <div class="grid four" id="riskCards"></div>
+      </div>
+
+      <div class="page" data-page="assumptions">
+        <div class="grid two">
+          <div class="control-card"><div class="card-head"><h3>فروض بنیادی مالی</h3><button class="btn danger small" id="resetAssumptions">بازنشانی</button></div><div class="inline-controls" id="baseControls"></div></div>
+          <div class="chart-card"><h3>اثر جریان نقدی و تنزیل</h3><div class="chart-box small" id="chartAssumptionImpact"></div><div class="warning">نرخ ۵۱٪ در این نسخه به‌عنوان نرخ مانع اسمی مبنا نمایش داده شده است، نه WACC نهایی پروژه.</div></div>
+        </div>
+        <div class="section-title"><h3>ضرایب توسعه منطقه</h3><span>از عدد ۱ شروع می‌شود و کمتر از ۱ قابل انتخاب نیست.</span></div>
+        <div class="grid four" id="devControls"></div>
+      </div>
+
+      <div class="page" data-page="revenue">
+        <div class="grid two">
+          <div class="control-card"><h3>قیمت‌گذاری و قابلیت فروش</h3><div class="inline-controls" id="pricingControls"></div></div>
+          <div class="chart-card"><h3>سهم ردیف‌های درآمدی</h3><div class="chart-box tall" id="chartRevenueItems"></div></div>
+        </div>
+        <div class="section-title"><h3>جدول درآمدی سناریوی جاری</h3><span>نمای اینفوگرافیکی + جدول پشتیبان</span></div>
+        <div class="card"><div class="card-head"><h3>کارت‌های درآمدی</h3><button class="btn small" onclick="exportWorkbook('revenue')">Excel درآمد</button></div><div class="infographic-mosaic" id="revenueInfo"></div><div class="table-wrap"><table class="table" id="revenueTable"></table></div></div>
+      </div>
+
+      <div class="page" data-page="cost">
+        <div class="grid two">
+          <div class="control-card"><h3>متغیرهای هزینه‌ای</h3><div class="inline-controls" id="costControls"></div><div class="warning">هزینه پایه زمین فقط ارزش زمین پیش از تغییر کاربری است و ارزش توسعه‌یافته یا آماده‌شده محسوب نمی‌شود.</div></div>
+          <div class="chart-card"><h3>ساختار هزینه سرمایه‌گذاری ثابت</h3><div class="chart-box tall" id="chartCostBreakdown"></div></div>
+        </div>
+        <div class="section-title"><h3>اجزای هزینه سرمایه‌گذاری ثابت</h3><span>نمای اینفوگرافیکی + جدول پشتیبان | واحد: همت</span></div>
+        <div class="card cost"><div class="card-head"><h3>کارت‌های هزینه‌ای</h3><button class="btn small" onclick="exportWorkbook('cost')">Excel هزینه</button></div><div class="infographic-mosaic" id="costInfo"></div><div class="table-wrap"><table class="table" id="costTable"></table></div></div>
+      </div>
+
+      <div class="page" data-page="cashflow">
+        <div class="grid five" id="cashSummary"></div>
+        <div class="section-title"><h3>اینفوگرافیک جریان نقدی سالانه</h3><span>درآمد، هزینه و جریان آزاد به تفکیک سال</span></div>
+        <div class="card"><div class="cash-timeline" id="cashTimeline"></div></div>
+        <div class="section-title"><h3>نمودارهای تحلیلی جریان نقدی</h3><span>تجمعی و تنزیل‌شده</span></div>
+        <div class="grid two-even">
+          <div class="chart-card"><h3>درآمد، هزینه و مالیات</h3><div class="chart-box" id="chartRevCost"></div></div>
+          <div class="chart-card"><h3>جریان نقدی تنزیل‌شده تجمعی</h3><div class="chart-box" id="chartDiscountedCum"></div></div>
+        </div>
+        <div class="section-title"><h3>صورت جریان نقدی تحلیلی پروژه</h3><span>جدول پشتیبان اعداد نموداری</span></div>
+        <div class="card"><div class="card-head"><h3>جدول جریان نقدی</h3><button class="btn small" onclick="exportWorkbook('cashflow')">Excel جریان نقدی</button></div><div class="table-wrap"><table class="table" id="cashflowTable"></table></div></div>
+      </div>
+
+      <div class="page" data-page="sensitivity">
+        <div class="chart-card full-span" id="tornadoCard"><h3>Tornado حساسیت NPV</h3><div class="chart-box tall" id="chartTornado"></div></div>
+        <div class="section-title"><h3>ماتریس حساسیت IRR</h3><span>تغییر درآمد و هزینه نسبت به سناریوی جاری</span></div>
+        <div class="chart-card"><div class="heatmap-wrap"><div id="heatmap" class="heatmap"></div></div></div>
+        <div class="section-title"><h3>تحلیل حساسیت IRR</h3><span>مقایسه اثر تغییر درآمدها، تغییر هزینه‌ها و سناریوی ترکیبی فشار / فرصت</span></div>
+        <div class="chart-card"><div class="chart-box tall" id="chartIRRSensitivity"></div><div class="grid two-even" id="sensitivityMiniCards" style="margin-top:14px"></div></div>
+        <div class="section-title"><h3>سناریوی فشار</h3><span>تأخیر فروش + افزایش هزینه + افت درآمد</span></div>
+        <div class="grid four" id="stressCards"></div>
+      </div>
+
+      <div class="page" data-page="compare">
+        <div class="guide">
+          <div class="guide-step"><b>۱) تغییر مفروضات</b><span>از کنترل سریع یا صفحات مفروضات، درآمد و هزینه استفاده کنید.</span></div>
+          <div class="guide-step"><b>۲) ذخیره سناریو</b><span>سناریوی فعلی را به‌عنوان Snapshot ذخیره کنید.</span></div>
+          <div class="guide-step"><b>۳) انتخاب دو سناریو</b><span>از فهرست، دو سناریو را برای مقایسه انتخاب کنید.</span></div>
+          <div class="guide-step"><b>۴) خروجی Excel</b><span>جداول درآمد، هزینه و جریان نقدی را در یک فایل دریافت کنید.</span></div>
+        </div>
+        <div class="scenario-layout">
+          <div class="control-card">
+            <h3>ساخت سریع سناریو</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button class="btn small" onclick="applyPreset('opportunity')">سناریوی فرصت</button>
+              <button class="btn secondary small" onclick="applyPreset('base')">سناریوی پایه</button>
+              <button class="btn danger small" onclick="applyPreset('pressure')">سناریوی فشار</button>
+            </div>
+            <button class="btn" id="saveScenario">ذخیره Snapshot سناریوی جاری</button>
+            <div class="scenario-list" id="scenarioList"></div>
+          </div>
+          <div class="chart-card"><h3>مقایسه سناریوهای مالی</h3><div id="comparePanel"></div><div class="chart-box" id="chartCompare"></div></div>
+        </div>
+        <div class="section-title"><h3>تاریخچه تغییرات متغیرهای حیاتی</h3><span>آخرین تغییرات پنل کنترل</span></div>
+        <div class="card"><div class="table-wrap"><table class="table" id="changeLogTable"></table></div></div>
+      </div>
+    </section>
+
+    <footer class="dashboard-footer">
+      <span>شرکت مهندسین مشاور آتک</span>
+      <span>تحلیل و طراحی : حمیدرضا ترابی</span>
+    </footer>
+  </main>
+</div>
+
+<div class="mini-sidebar collapsed" id="miniSidebar">
+  <div class="mini-head"><h4>کنترل سریع</h4><button id="miniToggle" title="باز کردن کنترل سریع"><span class="mini-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4 17h16M16 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg></span></button></div>
+  <div class="mini-body">
+    <div class="field"><label>تورم <b><span data-val="inflation"></span>%</b></label><div class="range-wrap"><input id="miniInflation" type="range" min="20" max="100" step="1" data-key="inflation"></div></div>
+    <div class="field"><label>تنزیل <b><span data-val="discount"></span>%</b></label><div class="range-wrap"><input id="miniDiscount" type="range" min="20" max="90" step="1" data-key="discount"></div></div>
+    <div class="field"><label>تأخیر <b><span data-val="salesDelay"></span> سال</b></label><div class="range-wrap"><input id="miniDelay" type="range" min="0" max="3" step="1" data-key="salesDelay"></div></div>
+    <div class="field"><label>درآمد <b><span data-val="revenueShock"></span>%</b></label><div class="range-wrap"><input id="miniRevenueShock" type="range" min="-50" max="50" step="1" data-key="revenueShock"></div></div>
+    <div class="field"><label>هزینه <b><span data-val="costShock"></span>%</b></label><div class="range-wrap"><input id="miniCostShock" type="range" min="-50" max="50" step="1" data-key="costShock"></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="nav-float-tooltip" id="navFloatTooltip"></div>
+
+<script>
+const BASE={inflation:51,discount:51,tax:10,horizon:20,salesDelay:0,revenueShock:0,costShock:0,dev:[1,1.08,1.12,1.15],municipalShare:20,sellabilityDense:90,sellabilityLow:85,sellabilityMixed:85,landPrice:10,densePrice:1000,lowPrice:1400,mixedPrice:1500,tourLandPrice:200,tourBuildPrice:2500,buildingCostDense:600,buildingCostMixed:500,buildingCostTour:800,buildingCostLow:600,infraShock:0,contingencyShock:0,revenueFinal:[0,35.70,53.91,108.54,163.90,334.11,504.50,761.79,1150.31,1736.97,2719.96,4107.14,6201.78,9364.69,16968.83,26309.26,39726.98,59987.74,105678.39,227963.39],costFinal:[25.68,38.77,58.54,88.40,133.48,201.56,304.36,459.58,693.96,1047.88,1582.30,2389.28,3607.81,5447.79,8226.17,12421.51,18756.48,28322.29,42766.65,64577.65],revenueItems:[{name:'ساختمان مسکونی پرتراکم',type:'ساختمانی',base:254.824572,area:2831384,share:32.3},{name:'زمین مسکونی پرتراکم',type:'زمین‌محور',base:75.503577,area:1179743,share:9.6},{name:'ساختمان مسکونی کم‌تراکم',type:'ساختمانی',base:148.052386,area:1244138,share:18.8},{name:'زمین مسکونی کم‌تراکم',type:'زمین‌محور',base:39.812406,area:1244138,share:5.1},{name:'ساختمان مختلط',type:'ساختمانی',base:192.435947,area:1509302,share:24.4},{name:'ساختمان گردشگری/اقامتی',type:'ساختمانی',base:20.213860,area:80855,share:2.6},{name:'زمین مختلط',type:'زمین‌محور',base:32.342160,area:269518,share:4.1},{name:'زمین توریستی',type:'زمین‌محور',base:6.490921,area:405683,share:.8},{name:'زمین ورزشی',type:'زمین‌محور',base:6.347102,area:396694,share:.8},{name:'زمین صنایع خلاق',type:'زمین‌محور',base:12.120521,area:757533,share:1.5}],costItems:[{name:'زمین',base:42.5330804},{name:'ساخت ابنیه',base:407.2408873},{name:'گذر، معابر و محوطه‌سازی',base:5.44544},{name:'تأسیسات مجموعه',base:33.072},{name:'هزینه‌های قبل بهره‌برداری',base:15.9852555},{name:'پیش‌بینی‌نشده',base:9.2348717}]};
+let state=clone(BASE),currentPage='overview',selectedScenarioIds=[],charts={},filters={revenueType:null,revenueItem:null,costItem:null},chartMissingWarned=false;
+const pages=[['overview','نمای مدیریتی پروژه','کارت‌های کلیدی، وضعیت ریسک و خلاصه شاخص‌های مالی','overview','نما'],['assumptions','مفروضات پایه','فروض مالی، نرخ‌ها و ضرایب توسعه منطقه','sliders','فروض'],['revenue','مدل درآمدی','تفکیک درآمد ساختمانی و زمین‌محور','bar','درآمد'],['cost','مدل هزینه','ساختار سرمایه‌گذاری ثابت و اجزای هزینه','cost','هزینه'],['cashflow','زمان‌بندی و جریان نقدی','درآمد، هزینه، مالیات و جریان نقدی تحلیلی','flow','نقدی'],['sensitivity','تحلیل حساسیت','Heatmap، Tornado و سناریوی فشار','pulse','ریسک'],['compare','مقایسه سناریوهای مالی','ذخیره، مقایسه و گزارش سناریوهای مختلف','compare','مقایسه']];
+const ICONS={
+  overview:'<svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5A1.5 1.5 0 0 1 12 5.5v5A1.5 1.5 0 0 1 10.5 12h-5A1.5 1.5 0 0 1 4 10.5z"/><path d="M14 5.5A1.5 1.5 0 0 1 15.5 4h3A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 14 18.5z"/><path d="M4 15.5A1.5 1.5 0 0 1 5.5 14h5a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 4 18.5z"/></svg>',
+  sliders:'<svg viewBox="0 0 24 24"><path d="M5 7h14M5 17h14"/><circle cx="9" cy="7" r="2.3"/><circle cx="15" cy="17" r="2.3"/></svg>',
+  bar:'<svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16l4-5 3 3 4-7"/><path d="M16 7h2v2"/><path d="M7 19v-3M12 19v-6M17 19v-9"/></svg>',
+  cost:'<svg viewBox="0 0 24 24"><path d="M6 7h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><path d="M8 7V5h8v2"/><path d="M8 12h5"/><path d="M8 16h8"/></svg>',
+  flow:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M7 15h4"/><path d="M13 15h4"/><path d="M16 13l2 2-2 2"/></svg>',
+  pulse:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/><path d="M4 12h3M17 12h3"/></svg>',
+  compare:'<svg viewBox="0 0 24 24"><path d="M5 6h6v12H5z"/><path d="M13 6h6v12h-6z"/><path d="M9 10h6"/><path d="M15 10l-2-2M15 10l-2 2"/><path d="M15 14H9"/><path d="M9 14l2-2M9 14l2 2"/></svg>'
+};
+function clone(o){return JSON.parse(JSON.stringify(o))}function qs(id){return document.getElementById(id)}function fmt(n,d=2){if(!isFinite(n))return '—';return Number(n).toLocaleString('fa-IR',{maximumFractionDigits:d,minimumFractionDigits:d})}function fmt0(n){if(!isFinite(n))return '—';return Number(n).toLocaleString('fa-IR',{maximumFractionDigits:0})}function clamp(v,min,max){return Math.max(min,Math.min(max,v))}function color(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}function debounce(fn,delay=150){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),delay)}}const requestUpdate=debounce(()=>update(),150);
+
+function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('pfsTheme',theme);const lab=qs('themeLabel');if(lab)lab.textContent=theme==='light'?'Light':'Dark'}
+function toggleTheme(){applyTheme((document.documentElement.dataset.theme||'dark')==='light'?'dark':'light');setTimeout(()=>update(),40)}
+function statusClass(v,t){if(t==='positive')return v>0?'green':'red';if(t==='ratio')return v>=1.5?'green':v>=1?'yellow':'red';if(t==='payback')return v<=6?'green':v<=10?'yellow':'red';if(t==='margin')return v>=20?'green':v>=0?'yellow':'red';return'green'}
+function baseRealArray(a){return a.map((v,i)=>v/Math.pow(1+BASE.inflation/100,i))}function applyHorizon(a,h=state.horizon){return a.slice(0,Math.min(Number(h),20))}function baseDevForYearIndex(i){return i<5?1:(i<10?1.08:(i<15?1.12:1.15))}function currentDevForYearIndex(st,i){return st.dev[Math.min(Math.floor(i/5),st.dev.length-1)]||1}
+function currentRevenueItems(st=state){const lf=((1-(st.municipalShare??20)/100)/0.8);return BASE.revenueItems.map(it=>{let f=1;if(it.name.includes('ساختمان مسکونی پرتراکم'))f=(st.densePrice/1000)*(st.sellabilityDense/90);else if(it.name.includes('ساختمان مسکونی کم'))f=(st.lowPrice/1400)*(st.sellabilityLow/85);else if(it.name.includes('ساختمان مختلط'))f=(st.mixedPrice/1500)*(st.sellabilityMixed/85);else if(it.name.includes('ساختمان گردشگری'))f=(st.tourBuildPrice/2500);else if(it.type==='زمین‌محور')f=lf*(it.name.includes('توریستی')||it.name.includes('ورزشی')||it.name.includes('صنایع')?st.tourLandPrice/200:1);return{...it,value:it.base*f}})}
+function currentCostItems(st=state){const land=st.landPrice/10,bDense=212.35381*(st.buildingCostDense/600),bLow=74.648262*((st.buildingCostLow||st.buildingCostDense)/600),bMixed=110.502434*(st.buildingCostMixed/500),bTour=9.736381*(st.buildingCostTour/800);return BASE.costItems.map(it=>{let v=it.base;if(it.name==='زمین')v=it.base*land;if(it.name==='ساخت ابنیه')v=bDense+bLow+bMixed+bTour;if(it.name.includes('گذر')||it.name.includes('تأسیسات'))v=it.base*(1+st.infraShock/100);if(it.name.includes('پیش‌بینی'))v=it.base*(1+st.contingencyShock/100);return{...it,value:v}})}
+function model(st=state){const inf=st.inflation/100,disc=st.discount/100,taxRate=st.tax/100,h=Number(st.horizon);let realRev=applyHorizon(baseRealArray(BASE.revenueFinal),h),realCost=applyHorizon(baseRealArray(BASE.costFinal),h);const revScale=currentRevenueItems(st).reduce((a,b)=>a+b.value,0)/788.14*(1+st.revenueShock/100),costScale=currentCostItems(st).reduce((a,b)=>a+b.value,0)/513.51*(1+st.costShock/100);let revenue=realRev.map((v,i)=>v*Math.pow(1+inf,i)*(currentDevForYearIndex(st,i)/baseDevForYearIndex(i))*revScale),cost=realCost.map((v,i)=>v*Math.pow(1+inf,i)*costScale);if(st.salesDelay>0)revenue=Array(st.salesDelay).fill(0).concat(revenue).slice(0,h);const ebt=revenue.map((r,i)=>r-cost[i]),tax=ebt.map(v=>v>0?v*taxRate:0),fcf=ebt.map((v,i)=>v-tax[i]);const cum=[];let s=0;fcf.forEach(v=>{s+=v;cum.push(s)});const discFcf=fcf.map((v,i)=>v/Math.pow(1+disc,i));const discCum=[];let ds=0;discFcf.forEach(v=>{ds+=v;discCum.push(ds)});const irrNom=irr(fcf)*100,realIrr=((1+irrNom/100)/(1+inf)-1)*100,npv=discCum[discCum.length-1],totalIn=revenue.reduce((a,b)=>a+b,0),totalOut=cost.reduce((a,b)=>a+b,0)+tax.reduce((a,b)=>a+b,0),bc=totalIn/totalOut,pp=payback(cum,fcf),dpbp=payback(discCum,discFcf),minCum=Math.min(...cum),breakYear=cum.findIndex(v=>v>=0)+1||null;return{years:Array.from({length:h},(_,i)=>i+1),revenue,cost,ebt,tax,fcf,cum,discFcf,discCum,irrNom,realIrr,npv,totalIn,totalOut,bc,pp,dpbp,minCum,breakYear}}
+function payback(cum,flow){for(let i=0;i<cum.length;i++)if(cum[i]>=0){if(i===0)return 1;return i+Math.abs(cum[i-1])/(flow[i]||1)}return Infinity}function npvAt(r,flows){return flows.reduce((a,v,i)=>a+v/Math.pow(1+r,i),0)}function irr(flows){let low=-.99,high=5;for(let k=0;k<90;k++){let mid=(low+high)/2;npvAt(mid,flows)>0?low=mid:high=mid}return(low+high)/2}
+function chartDefaults(){if(!window.Chart)return;Chart.defaults.font.family='Vazir,Vazirmatn,Tahoma,sans-serif';Chart.defaults.color=color('--muted');Chart.defaults.plugins.tooltip.rtl=true;Chart.defaults.plugins.tooltip.textDirection='rtl';Chart.defaults.plugins.tooltip.backgroundColor='rgba(3,12,22,.96)';Chart.defaults.plugins.tooltip.borderColor='rgba(68,215,223,.35)';Chart.defaults.plugins.tooltip.borderWidth=1;Chart.defaults.plugins.tooltip.padding=12;Chart.defaults.plugins.tooltip.titleColor='#fff';Chart.defaults.plugins.tooltip.bodyColor='#eaf8ff';try{if(window.ChartZoom)Chart.register(window.ChartZoom);if(window.chartjsPluginZoom)Chart.register(window.chartjsPluginZoom)}catch(e){}}
+function chartCanvas(id){const el=qs(id);if(!el||!window.Chart)return null;if(!el.querySelector('canvas'))el.innerHTML='<canvas></canvas>';return el.querySelector('canvas')}
+function makeChart(id,type,data,options={}){const canvas=chartCanvas(id);if(!canvas)return;if(charts[id])charts[id].destroy();const baseOptions={responsive:true,maintainAspectRatio:false,animation:{duration:560,easing:'easeOutQuart'},interaction:{mode:'nearest',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:window.innerWidth<680?10:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label||ctx.label}: ${fmt(ctx.parsed.y ?? ctx.parsed.x ?? ctx.parsed,1)}`}},zoom:{pan:{enabled:true,mode:'x',modifierKey:'shift'},zoom:{wheel:{enabled:true,modifierKey:'ctrl'},pinch:{enabled:true},mode:'x'}}},scales:{x:{grid:{color:'rgba(255,255,255,.07)'},ticks:{maxRotation:0,autoSkip:true}},y:{grid:{color:'rgba(255,255,255,.09)'},ticks:{callback:v=>fmt(v,0)}}}};charts[id]=new Chart(canvas,{type,data,options:deepMerge(baseOptions,options)});}
+function deepMerge(target,src){const out=Array.isArray(target)?[...target]:{...target};for(const k in src){if(src[k]&&typeof src[k]==='object'&&!Array.isArray(src[k]))out[k]=deepMerge(out[k]||{},src[k]);else out[k]=src[k]}return out}
+function lineChart(id,years,series,unit='همت'){makeChart(id,'line',{labels:years.map(y=>'سال '+y),datasets:series.map(s=>({label:s.name,data:s.values,borderColor:s.color,backgroundColor:s.fill||s.color,tension:.38,borderWidth:3,pointRadius:window.innerWidth<680?2:3,pointHoverRadius:6,fill:!!s.area}))},{plugins:{tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.parsed.y,1)} ${unit}`}}},scales:{y:{ticks:{callback:v=>fmt(v,0)}}}})}
+function barChart(id,labels,datasets,unit='همت',indexAxis='x',onClick=null){makeChart(id,'bar',{labels,datasets:datasets.map(d=>({borderRadius:12,barPercentage:.72,categoryPercentage:.78,...d}))},{indexAxis,onClick:onClick||undefined,plugins:{tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label||ctx.label}: ${fmt(indexAxis==='y'?ctx.parsed.x:ctx.parsed.y,1)} ${unit}`}}},scales:indexAxis==='y'?{x:{ticks:{callback:v=>fmt(v,0)},grid:{color:'rgba(255,255,255,.09)'}},y:{ticks:{autoSkip:false,font:{size:window.innerWidth<680?10:12}},grid:{display:false}}}:{x:{ticks:{maxRotation:0,autoSkip:true},grid:{display:false}},y:{ticks:{callback:v=>fmt(v,0)},grid:{color:'rgba(255,255,255,.09)'}}}})}
+function renderNav(){qs('navList').innerHTML=pages.map(p=>`<button class="nav-item ${p[0]===currentPage?'active':''}" data-page="${p[0]}" data-title="${p[1]}" data-short="${p[4]}"><span class="nav-ico">${ICONS[p[3]]}</span><span class="nav-label">${p[1]}</span></button>`).join('');document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showPage(b.dataset.page));bindNavTooltip()}
+function showPage(p,anchor){currentPage=p;document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.dataset.page===p));const meta=pages.find(x=>x[0]===p);qs('pageTitle').textContent=meta[1];qs('pageSub').textContent=meta[2];const mt=qs('mobileFixedTitle');if(mt)mt.textContent=meta[1];renderNav();setTimeout(()=>{update();if(anchor)setTimeout(()=>spotlight(anchor),90)},0);window.scrollTo({top:0,behavior:'smooth'})}
+function spotlight(id){const el=qs(id);if(!el)return;const target=el.closest('.chart-card,.card,.control-card,.kpi-card')||el;target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.add('drill-flash');setTimeout(()=>target.classList.remove('drill-flash'),1500)}
+function rangeField(key,label,min,max,step,suffix){return`<div class="field"><label>${label}<b><span data-val="${key}">${state[key]}</span>${suffix}</b></label><div class="range-wrap"><input type="range" min="${min}" max="${max}" step="${step}" value="${state[key]}" data-key="${key}"></div><small>${min} تا ${max} ${suffix}</small></div>`}
+function numberField(key,label,suffix){return`<div class="field"><label>${label}<b>${suffix}</b></label><input type="number" value="${state[key]}" step="0.01" data-key="${key}"><small>${suffix}</small></div>`}
+function selectField(key,label,vals,suffix){return`<div class="field"><label>${label}<b>${suffix}</b></label><select data-key="${key}">${vals.map(v=>`<option value="${v}" ${Number(state[key])===v?'selected':''}>${v} ${suffix}</option>`).join('')}</select></div>`}
+function renderControls(){qs('baseControls').innerHTML=[rangeField('inflation','نرخ تورم نهاده‌ها',20,100,1,'%'),rangeField('discount','نرخ تنزیل / نرخ مانع',20,90,1,'%'),rangeField('tax','مالیات علی‌الحساب',0,25,1,'%'),selectField('horizon','افق تحلیل',[10,15,20],'سال'),rangeField('revenueShock','تغییر درآمد کل',-50,50,1,'%'),rangeField('costShock','تغییر هزینه کل',-50,50,1,'%'),rangeField('salesDelay','تأخیر شروع فروش',0,3,1,'سال')].join('');qs('devControls').innerHTML=state.dev.map((v,i)=>`<div class="dev-card"><h4>دوره ${i+1}</h4><div class="field"><label>ضریب توسعه <b><span data-dev-val="${i}">${fmt(v,2)}</span></b></label><div class="range-wrap"><input type="range" min="1" max="1.35" step="0.01" value="${v}" data-dev="${i}"></div><div class="range-hint"><span>۱.۰۰</span><span>۱.۳۵</span></div></div><small>سال‌های ${i*5+1} تا ${(i+1)*5}</small></div>`).join('');qs('pricingControls').innerHTML=[numberField('landPrice','قیمت پایه زمین','میلیون تومان/مترمربع'),numberField('densePrice','فروش مسکونی پرتراکم','میلیون ریال/مترمربع'),numberField('lowPrice','فروش مسکونی کم‌تراکم','میلیون ریال/مترمربع'),numberField('mixedPrice','فروش کاربری مختلط','میلیون ریال/مترمربع'),numberField('tourLandPrice','واگذاری زمین گردشگری/ورزشی','میلیون ریال/مترمربع'),rangeField('municipalShare','قدرالسهم شهرداری',0,35,1,'%'),rangeField('sellabilityDense','قابلیت فروش مسکونی پرتراکم',60,100,1,'%'),rangeField('sellabilityMixed','قابلیت فروش مختلط',60,100,1,'%')].join('');qs('costControls').innerHTML=[rangeField('costShock','تغییر هزینه کل',-50,50,1,'%'),numberField('buildingCostDense','هزینه ساخت مسکونی پرتراکم','میلیون ریال/مترمربع'),numberField('buildingCostLow','هزینه ساخت مسکونی کم‌تراکم','میلیون ریال/مترمربع'),numberField('buildingCostMixed','هزینه ساخت مختلط','میلیون ریال/مترمربع'),numberField('buildingCostTour','هزینه ساخت گردشگری','میلیون ریال/مترمربع'),rangeField('infraShock','شوک زیرساخت',-20,40,1,'%'),rangeField('contingencyShock','شوک پیش‌بینی‌نشده',-20,50,1,'%')].join('');bindControls();syncControlsFromState()}
+function bindControls(){document.querySelectorAll('[data-key]').forEach(el=>{el.oninput=e=>{const key=e.currentTarget.dataset.key;state[key]=Number(e.currentTarget.value);syncControlsFromState(key);requestUpdate()};el.onchange=e=>{const key=e.currentTarget.dataset.key;logChange(key,null,state[key])}});document.querySelectorAll('[data-dev]').forEach(el=>{el.oninput=e=>{const i=+e.currentTarget.dataset.dev;state.dev[i]=Number(e.currentTarget.value);document.querySelectorAll(`[data-dev-val="${i}"]`).forEach(v=>v.textContent=fmt(state.dev[i],2));requestUpdate()};el.onchange=e=>logChange('dev'+(+e.currentTarget.dataset.dev+1),null,state.dev[+e.currentTarget.dataset.dev])})}
+function syncControlsFromState(){document.querySelectorAll('[data-key]').forEach(el=>{const k=el.dataset.key;if(document.activeElement!==el)el.value=state[k]});document.querySelectorAll('[data-val]').forEach(v=>{const k=v.dataset.val;v.textContent=state[k]});document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('active',b.dataset.preset===activePresetName()));updateRangeColors()}
+function updateRangeColors(){document.querySelectorAll('input[type=range]').forEach(input=>{const min=Number(input.min),max=Number(input.max),val=Number(input.value),pct=(val-min)/(max-min)*100,zero=(0-min)/(max-min)*100;let c1='rgba(68,215,223,.88)',c2='rgba(75,151,255,.72)',base='rgba(255,255,255,.12)',bg='';const isSigned=min<0&&max>0;if(input.dataset.key==='costShock'){c1=val>0?'rgba(255,99,120,.90)':'rgba(53,208,127,.86)';c2=c1}else if(input.dataset.key==='revenueShock'){c1=val<0?'rgba(255,99,120,.90)':'rgba(53,208,127,.86)';c2=c1}else if(input.dataset.dev){c1='rgba(232,195,106,.92)';c2='rgba(68,215,223,.82)'}else if(input.dataset.key==='salesDelay'){c1='rgba(232,195,106,.92)';c2='rgba(255,99,120,.72)'}if(isSigned){if(Math.abs(val)<1e-9)bg=`linear-gradient(90deg,${base} 0%,${base} 100%)`;else if(val>0)bg=`linear-gradient(90deg,${base} 0%,${base} ${zero}%,${c1} ${zero}%,${c2} ${pct}%,${base} ${pct}%,${base} 100%)`;else bg=`linear-gradient(90deg,${base} 0%,${base} ${pct}%,${c1} ${pct}%,${c2} ${zero}%,${base} ${zero}%,${base} 100%)`}else{bg=`linear-gradient(90deg,${c1} 0%,${c2} ${pct}%,${base} ${pct}%,${base} 100%)`}input.style.background=bg})}
+function bindMini(){qs('miniToggle').onclick=()=>qs('miniSidebar').classList.toggle('collapsed')}
+function resetAll(){state=clone(BASE);filters={revenueType:null,revenueItem:null,costItem:null};selectedScenarioIds=[];localStorage.removeItem('pfsLog');renderControls();update();toast('داشبورد به حالت پایه برگشت.')}
+function activePresetName(){if(state.revenueShock===20&&state.costShock===-20&&state.discount===45)return'opportunity';if(state.revenueShock===-20&&state.costShock===20&&state.salesDelay===2)return'pressure';return'base'}
+function applyPreset(type){if(type==='base')state=clone(BASE);if(type==='opportunity')state={...clone(BASE),revenueShock:20,costShock:-20,salesDelay:0,discount:45,dev:[1,1.10,1.15,1.20]};if(type==='pressure')state={...clone(BASE),revenueShock:-20,costShock:20,salesDelay:2,discount:60,dev:[1,1.02,1.04,1.06]};renderControls();update();toast(type==='opportunity'?'سناریوی فرصت اعمال شد.':type==='pressure'?'سناریوی فشار اعمال شد.':'سناریوی پایه اعمال شد.')}
+function chipTone(key,val){if(key==='revenueShock')return val>0?'good':val<0?'bad':'neutral';if(key==='costShock')return val>0?'bad':val<0?'good':'neutral';if(key==='salesDelay')return val===0?'neutral':val===1?'warn':'bad';if(key==='inflation'||key==='discount')return val<=45?'good':val<=60?'warn':'bad';return 'neutral'}
+function renderScenarioStrip(){const el=qs('scenarioStrip');if(!el)return;const chips=[['تورم','inflation','٪'],['تنزیل','discount','٪'],['درآمد','revenueShock','٪'],['هزینه','costShock','٪'],['تأخیر','salesDelay',' سال']];el.innerHTML=chips.map(([label,key,suf])=>`<span class="scenario-token ${chipTone(key,state[key])}"><b>${label}</b><strong>${state[key]}${suf}</strong></span>`).join('')}
+function update(){renderScenarioStrip();renderFilterPill();if(!window.Chart){if(!chartMissingWarned){chartMissingWarned=true;document.querySelectorAll('.chart-box').forEach(el=>el.innerHTML='<div class="warning bad">کتابخانه Chart.js هنوز بارگذاری نشده است. در حالت آنلاین، نمودارها پس از بارگذاری CDN نمایش داده می‌شوند.</div>')}setTimeout(update,900);return}chartMissingWarned=false;const m=model();renderKpis(m);renderRisk(m);renderCharts(m);renderTables(m);renderHeatmap();renderStress();renderCashflowInfographic(m);renderScenarioList();renderChangeLog();syncControlsFromState()}
+function renderFilterPill(){const parts=[];if(filters.revenueType)parts.push('نوع درآمد: '+filters.revenueType);if(filters.revenueItem)parts.push('ردیف درآمد: '+filters.revenueItem);if(filters.costItem)parts.push('جزء هزینه: '+filters.costItem);const pill=qs('filterPill');if(parts.length){pill.style.display='inline-flex';pill.textContent='فیلتر فعال | '+parts.join(' | ')}else{pill.style.display='none';pill.textContent=''}}
+
+function sparkline(arr){const vals=(arr||[]).map(Number).filter(Number.isFinite);if(vals.length<2)return'';let min=Math.min(...vals),max=Math.max(...vals);if(min===max){min-=1;max+=1}const w=160,h=34,p=3;const pts=vals.map((v,i)=>`${p+(w-2*p)*(i/(vals.length-1))},${h-p-(h-2*p)*((v-min)/(max-min))}`).join(' ');return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area" d="M${pts.split(' ')[0]} L${pts} L${w-p},${h-p} L${p},${h-p} Z"></path><polyline points="${pts}"></polyline></svg>`}
+function renderKpis(m){const ratioTrend=m.years.map((_,i)=>m.revenue.slice(0,i+1).reduce((a,b)=>a+b,0)/(m.cost.slice(0,i+1).reduce((a,b)=>a+b,0)+m.tax.slice(0,i+1).reduce((a,b)=>a+b,0)||1));const k=[{t:'IRR اسمی',v:fmt(m.irrNom,1)+'٪',s:'بازده داخلی مدل اسمی',st:statusClass(m.irrNom-state.discount,'margin'),b:'IRR',page:'sensitivity',anchor:'heatmap',spark:m.fcf},{t:'IRR واقعی',v:fmt(m.realIrr,1)+'٪',s:'تعدیل‌شده با تورم',st:statusClass(m.realIrr,'margin'),b:'RIRR',page:'sensitivity',anchor:'chartIRRSensitivity',spark:m.fcf.map((x,i)=>x/Math.pow(1+state.inflation/100,i))},{t:'NPV اسمی',v:fmt(m.npv,2),s:'همت / نرخ مانع اسمی',st:statusClass(m.npv,'positive'),b:'NPV',page:'sensitivity',anchor:'chartTornado',spark:m.discCum},{t:'B/C',v:fmt(m.bc,2),s:'نسبت منفعت به هزینه',st:statusClass(m.bc,'ratio'),b:'B/C',page:'cashflow',anchor:'chartRevCost',spark:ratioTrend},{t:'بازگشت ساده',v:isFinite(m.pp)?fmt(m.pp,1):'—',s:'سال',st:statusClass(m.pp,'payback'),b:'PP',page:'cashflow',anchor:'chartCum',spark:m.cum},{t:'بازگشت تنزیلی',v:isFinite(m.dpbp)?fmt(m.dpbp,1):'—',s:'سال',st:statusClass(m.dpbp,'payback'),b:'DPBP',page:'cashflow',anchor:'chartDiscountedCum',spark:m.discCum}];qs('kpiGrid').innerHTML=k.map(x=>`<div class="kpi-card drill ${x.st}" data-page="${x.page}" data-anchor="${x.anchor}" title="مشاهده جزئیات"><span class="metric-glyph">${x.b}</span><div class="kpi-spark">${sparkline(x.spark)}</div><div class="kpi-head"><span>${x.t}</span><i class="status ${x.st}"></i></div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.s}</div><span class="delta ${x.st==='red'?'down':x.st==='yellow'?'warn':'up'}">جزئیات</span></div>`).join('');document.querySelectorAll('.kpi-card.drill').forEach(c=>c.onclick=()=>showPage(c.dataset.page,c.dataset.anchor));qs('smartMessage').className='warning '+((m.npv>0&&m.irrNom>state.discount)?'good':m.npv<0?'bad':'');qs('smartMessage').innerHTML=smartText(m)}
+function smartText(m){if(m.npv<0)return'هشدار: در سناریوی جاری، NPV منفی شده است. ترکیب نرخ تنزیل، افت درآمد، افزایش هزینه یا تأخیر فروش باید بازنگری شود.';if(m.irrNom<state.discount)return'هشدار: IRR اسمی از نرخ تنزیل پایین‌تر است؛ حاشیه ایمنی بازده از بین رفته و پروژه مشروط تلقی می‌شود.';if(state.salesDelay>0||state.costShock>0||state.revenueShock<0)return'سناریوی جاری تحت فشار قرار دارد؛ شاخص‌ها هنوز مثبت‌اند اما باید با سناریوی پایه مقایسه شوند.';return'سناریوی جاری از نظر شاخص‌های کلان مثبت است. IRR بالاتر از نرخ تنزیل و NPV مثبت باقی مانده است.'}
+function renderRisk(m){const margin=m.irrNom-state.discount,c=[['حاشیه ایمنی بازده',fmt(margin,1)+'٪','فاصله IRR اسمی از نرخ تنزیل',statusClass(margin,'margin'),'SAFE'],['سال سربه‌سری نقدی',m.breakYear?`سال ${m.breakYear}`:'—','عبور تجمعی از منفی به مثبت',m.breakYear&&m.breakYear<=6?'green':'yellow','BE'],['حداکثر کسری نقدی تجمعی',fmt(m.minCum,2),'همت',m.minCum>-100?'yellow':'red','GAP'],['وضعیت توجیه‌پذیری',m.npv>0&&margin>0?'توجیه‌دار':m.npv>0?'مشروط':'نیازمند بازنگری','بر اساس شاخص‌های جاری',m.npv>0&&margin>0?'green':m.npv>0?'yellow':'red','OK']];qs('riskCards').innerHTML=c.map(x=>`<div class="kpi-card"><span class="metric-glyph">${x[4]}</span><div class="kpi-head"><span>${x[0]}</span><i class="status ${x[3]}"></i></div><div class="kpi-value" style="font-size:24px">${x[1]}</div><div class="kpi-sub">${x[2]}</div></div>`).join('')}
+function renderCharts(m){lineChart('chartCum',m.years,[{name:'جریان نقدی تجمعی',values:m.cum,color:color('--cyan'),fill:'rgba(68,215,223,.10)',area:true},{name:'سربه‌سری',values:m.years.map(_=>0),color:color('--red')}]);renderRevenueMix();lineChart('chartAssumptionImpact',m.years,[{name:'جریان نقدی آزاد',values:m.fcf,color:color('--gold')},{name:'تنزیل‌شده',values:m.discFcf,color:color('--cyan')}]);renderRevenueItemsChart();renderCostChart();lineChart('chartRevCost',m.years,[{name:'درآمد',values:m.revenue,color:color('--green')},{name:'هزینه',values:m.cost,color:color('--red')},{name:'مالیات',values:m.tax,color:color('--gold')}]);lineChart('chartDiscountedCum',m.years,[{name:'تجمعی تنزیل‌شده',values:m.discCum,color:color('--purple'),fill:'rgba(167,139,250,.10)',area:true},{name:'سربه‌سری',values:m.years.map(_=>0),color:color('--red')}]);renderTornado();renderIRRSensitivity();drawCompareChart()}
+function renderRevenueMix(){const ri=currentRevenueItems(),building=ri.filter(x=>x.type==='ساختمانی').reduce((a,b)=>a+b.value,0),land=ri.filter(x=>x.type==='زمین‌محور').reduce((a,b)=>a+b.value,0);makeChart('chartRevenueMix','doughnut',{labels:['ساختمانی','زمین‌محور'],datasets:[{data:[building,land],backgroundColor:[color('--cyan'),color('--gold')],borderColor:'rgba(255,255,255,.08)',borderWidth:2,hoverOffset:12}]},{cutout:'64%',onClick:(evt,active)=>{if(active.length){const lab=charts.chartRevenueMix.data.labels[active[0].index];filters.revenueType=filters.revenueType===lab?null:lab;filters.revenueItem=null;update();toast(filters.revenueType?'فیلتر درآمد '+filters.revenueType+' فعال شد.':'فیلتر درآمد حذف شد.')}},plugins:{tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmt(ctx.parsed,1)} همت | سهم ${fmt(ctx.parsed/(building+land)*100,1)}٪`}}}})}
+function filteredRevenueItems(){let items=currentRevenueItems();if(filters.revenueType)items=items.filter(x=>x.type===filters.revenueType);if(filters.revenueItem)items=items.filter(x=>x.name===filters.revenueItem);return items}
+function filteredCostItems(){let items=currentCostItems();if(filters.costItem)items=items.filter(x=>x.name===filters.costItem);return items}
+function renderRevenueItemsChart(){const items=[...filteredRevenueItems()].sort((a,b)=>b.value-a.value);barChart('chartRevenueItems',items.map(x=>x.name),[{label:'درآمد سناریو',data:items.map(x=>x.value),backgroundColor:items.map(x=>x.type==='ساختمانی'?color('--cyan'):color('--gold'))}],'همت','y',(evt,active)=>{if(active.length){const name=items[active[0].index].name;filters.revenueItem=filters.revenueItem===name?null:name;update();toast(filters.revenueItem?'فیلتر ردیف درآمد فعال شد.':'فیلتر ردیف درآمد حذف شد.')}})}
+function renderCostChart(){const items=[...filteredCostItems()].sort((a,b)=>b.value-a.value);barChart('chartCostBreakdown',items.map(x=>x.name),[{label:'هزینه سرمایه‌گذاری ثابت',data:items.map(x=>x.value),backgroundColor:items.map((_,i)=>i===0?color('--red'):i===1?color('--gold'):color('--blue'))}],'همت','y',(evt,active)=>{if(active.length){const name=items[active[0].index].name;filters.costItem=filters.costItem===name?null:name;update();toast(filters.costItem?'فیلتر هزینه فعال شد.':'فیلتر هزینه حذف شد.')}})}
+function renderTornado(){const base=model().npv,vars=[['درآمد','revenueShock'],['هزینه','costShock'],['نرخ تنزیل','discount'],['تورم','inflation'],['تأخیر فروش','salesDelay']],rows=vars.map(([name,key])=>{let low={...state,dev:[...state.dev]},high={...state,dev:[...state.dev]};if(key==='salesDelay'){low[key]=0;high[key]=3}else if(key==='discount'||key==='inflation'){low[key]=Math.max(20,state[key]-10);high[key]=state[key]+10}else{low[key]=Math.max(-50,state[key]-10);high[key]=Math.min(50,state[key]+10)}return{name,low:model(low).npv-base,high:model(high).npv-base}}).sort((a,b)=>Math.max(Math.abs(b.low),Math.abs(b.high))-Math.max(Math.abs(a.low),Math.abs(a.high)));barChart('chartTornado',rows.map(r=>r.name),[{label:'اثر کاهشی بر NPV',data:rows.map(r=>Math.min(r.low,r.high)),backgroundColor:'rgba(255,99,120,.82)'},{label:'اثر افزایشی بر NPV',data:rows.map(r=>Math.max(r.low,r.high)),backgroundColor:'rgba(53,208,127,.78)'}],'همت','y')}
+function renderIRRSensitivity(){const changes=[-50,-40,-30,-20,-10,0,10,20,30,40,50],rev=changes.map(d=>model({...state,dev:[...state.dev],revenueShock:clamp(state.revenueShock+d,-50,50),costShock:state.costShock}).irrNom),costs=changes.map(d=>model({...state,dev:[...state.dev],revenueShock:state.revenueShock,costShock:clamp(state.costShock+d,-50,50)}).irrNom),combo=changes.map(d=>model({...state,dev:[...state.dev],revenueShock:clamp(state.revenueShock+d,-50,50),costShock:clamp(state.costShock-d,-50,50)}).irrNom);lineChart('chartIRRSensitivity',changes.map(c=>c+'%'),[{name:'تغییر درآمدها',values:rev,color:color('--blue')},{name:'تغییر هزینه‌ها',values:costs,color:color('--red')},{name:'سناریوی ترکیبی فشار/فرصت',values:combo,color:color('--green')}],'%');qs('sensitivityMiniCards').innerHTML=`<div class="kpi-card"><span class="metric-glyph">MAX</span><div class="kpi-head"><span>بیشترین IRR</span><i class="status green"></i></div><div class="kpi-value" style="color:var(--green)">${fmt(Math.max(...combo),0)}٪</div><div class="kpi-sub">در سناریوی ترکیبی مثبت</div></div><div class="kpi-card"><span class="metric-glyph">MIN</span><div class="kpi-head"><span>کمترین IRR</span><i class="status red"></i></div><div class="kpi-value" style="color:var(--red)">${fmt(Math.min(...combo),0)}٪</div><div class="kpi-sub">در سناریوی ترکیبی منفی</div></div>`}
+function renderHeatmap(){const changes=[-50,-40,-30,-20,-10,0,10,20,30,40,50],hm=qs('heatmap');if(!hm)return;let html='<div class="axis">درآمد / هزینه</div>'+changes.map(c=>`<div class="axis">${c}%</div>`).join('');changes.forEach(r=>{html+=`<div class="axis">${r}%</div>`;changes.forEach(c=>{const st={...state,dev:[...state.dev],revenueShock:clamp(state.revenueShock+r,-50,50),costShock:clamp(state.costShock+c,-50,50)},val=model(st).irrNom,bg=val>=state.discount+20?'rgba(53,208,127,.88)':val>=state.discount?'rgba(255,209,102,.84)':'rgba(255,99,120,.82)',active=r===0&&c===0;html+=`<div class="${active?'active-cell':''}" style="background:${bg};color:#06111b;font-weight:950" title="درآمد: ${st.revenueShock}٪ | هزینه: ${st.costShock}٪ | IRR: ${fmt(val,1)}٪">${fmt(val,0)}٪</div>`})});hm.innerHTML=html}
+function tableCell(label,value){return`<td data-label="${label}">${value}</td>`}
+function renderTables(m){const revItems=filteredRevenueItems(),revAll=currentRevenueItems(),revTot=revAll.reduce((a,b)=>a+b.value,0),revMax=Math.max(...revAll.map(x=>x.value));qs('revenueInfo').innerHTML=revItems.sort((a,b)=>b.value-a.value).map(x=>`<div class="info-tile" title="${x.name} | ${fmt(x.value,2)} همت"><div class="info-top"><div class="info-title">${x.name}</div><div class="info-value">${fmt(x.value,1)}</div></div><div class="info-meta">${x.type} | متراژ: ${fmt0(x.area)} | سهم: ${fmt(x.value/revTot*100,1)}٪</div><div class="info-track"><span style="width:${x.value/revMax*100}%"></span></div></div>`).join('');qs('revenueTable').innerHTML='<thead><tr><th>ردیف درآمدی</th><th>نوع</th><th>متراژ</th><th>درآمد سناریو، همت</th><th>سهم</th></tr></thead><tbody>'+revItems.map(x=>`<tr>${tableCell('ردیف درآمدی',x.name)}${tableCell('نوع',x.type)}${tableCell('متراژ',fmt0(x.area))}${tableCell('درآمد سناریو، همت',fmt(x.value,2))}${tableCell('سهم',fmt(x.value/revTot*100,1)+'٪')}</tr>`).join('')+'</tbody>';const costItems=filteredCostItems(),costAll=currentCostItems(),costTot=costAll.reduce((a,b)=>a+b.value,0),costMax=Math.max(...costAll.map(x=>x.value));qs('costInfo').innerHTML=costItems.sort((a,b)=>b.value-a.value).map(x=>`<div class="info-tile" title="${x.name} | ${fmt(x.value,2)} همت"><div class="info-top"><div class="info-title">${x.name}</div><div class="info-value">${fmt(x.value,1)}</div></div><div class="info-meta">سهم از سرمایه‌گذاری ثابت: ${fmt(x.value/costTot*100,1)}٪</div><div class="info-track"><span style="width:${x.value/costMax*100}%"></span></div></div>`).join('');qs('costTable').innerHTML='<thead><tr><th>جزء هزینه</th><th>مبلغ سناریو، همت</th><th>سهم از کل</th></tr></thead><tbody>'+costItems.map(x=>`<tr>${tableCell('جزء هزینه',x.name)}${tableCell('مبلغ سناریو، همت',fmt(x.value,2))}${tableCell('سهم از کل',fmt(x.value/costTot*100,1)+'٪')}</tr>`).join('')+'</tbody>';qs('cashflowTable').innerHTML='<thead><tr><th>سال</th><th>درآمد</th><th>هزینه</th><th>مالیات</th><th>جریان آزاد</th><th>تجمعی</th><th>تجمعی تنزیل‌شده</th></tr></thead><tbody>'+m.years.map((y,i)=>`<tr>${tableCell('سال',y)}${tableCell('درآمد',fmt(m.revenue[i],2))}${tableCell('هزینه',fmt(m.cost[i],2))}${tableCell('مالیات',fmt(m.tax[i],2))}${tableCell('جریان آزاد',fmt(m.fcf[i],2))}${tableCell('تجمعی',fmt(m.cum[i],2))}${tableCell('تجمعی تنزیل‌شده',fmt(m.discCum[i],2))}</tr>`).join('')+'</tbody>'}
+function renderCashflowInfographic(m){const cashCards=[{t:'ورودی کل',v:fmt(m.totalIn,1),u:'همت',g:'IN',st:'green',spark:m.revenue},{t:'خروجی کل',v:fmt(m.totalOut,1),u:'همت',g:'OUT',st:'red',spark:m.cost},{t:'جریان تجمعی نهایی',v:fmt(m.cum[m.cum.length-1],1),u:'همت',g:'CF',st:m.cum[m.cum.length-1]>=0?'green':'red',spark:m.cum},{t:'سال سربه‌سری',v:m.breakYear?`سال ${m.breakYear}`:'—',u:'',g:'BE',st:m.breakYear&&m.breakYear<=6?'green':'yellow',spark:m.cum},{t:'حداکثر کسری',v:fmt(m.minCum,1),u:'همت',g:'GAP',st:m.minCum>-100?'yellow':'red',spark:m.fcf}];qs('cashSummary').innerHTML=cashCards.map(x=>`<div class="cash-metric ${x.st}" title="${x.t}"><span class="cash-glyph">${x.g}</span><div class="cash-spark">${sparkline(x.spark)}</div><div class="cash-top"><span>${x.t}</span><i class="status ${x.st}"></i></div><strong>${x.v}</strong><small>${x.u}</small></div>`).join('');const max=Math.max(...m.revenue,...m.cost,...m.fcf.map(Math.abs))||1;qs('cashTimeline').innerHTML=m.years.map((y,i)=>`<div class="year-card ${m.fcf[i]>=0?'positive':'warning-state'}" title="سال ${y} | درآمد ${fmt(m.revenue[i],1)} | هزینه ${fmt(m.cost[i],1)} | جریان آزاد ${fmt(m.fcf[i],1)}"><span class="year-watermark">${y}</span><h4>سال ${y}</h4><div class="year-metrics"><b>درآمد</b><span>${fmt(m.revenue[i],0)}</span></div><div class="mini-bar"><span style="width:${Math.abs(m.revenue[i])/max*100}%;background:var(--green)"></span></div><div class="year-metrics"><b>هزینه</b><span>${fmt(m.cost[i],0)}</span></div><div class="mini-bar"><span style="width:${Math.abs(m.cost[i])/max*100}%;background:var(--red)"></span></div><div class="year-metrics"><b>جریان آزاد</b><span>${fmt(m.fcf[i],0)}</span></div><div class="mini-bar"><span style="width:${Math.abs(m.fcf[i])/max*100}%;background:${m.fcf[i]>=0?'var(--cyan)':'var(--gold)'}"></span></div></div>`).join('')}
+function renderStress(){const base=model({...state,dev:[...state.dev],salesDelay:0,costShock:0,revenueShock:0}),stress=model({...state,dev:[...state.dev],salesDelay:3,costShock:20,revenueShock:-20}),cards=[['افت NPV',fmt(stress.npv-base.npv,2),'همت',stress.npv-base.npv<0?'red':'green','DROP'],['IRR فشار',fmt(stress.irrNom,1)+'٪','تأخیر ۳ سال + هزینه ۲۰٪ + درآمد ۲۰٪-',statusClass(stress.irrNom-state.discount,'margin'),'ST'],['PBP فشار',isFinite(stress.dpbp)?fmt(stress.dpbp,1):'—','سال',statusClass(stress.dpbp,'payback'),'PBP'],['وضعیت فشار',stress.npv>0?'قابل تحمل':'بحرانی','سناریوی فشار ترکیبی',stress.npv>0?'yellow':'red','RISK']];qs('stressCards').innerHTML=cards.map(c=>`<div class="kpi-card"><span class="metric-glyph">${c[4]}</span><div class="kpi-head"><span>${c[0]}</span><i class="status ${c[3]}"></i></div><div class="kpi-value" style="font-size:24px">${c[1]}</div><div class="kpi-sub">${c[2]}</div></div>`).join('')}
+function logChange(key,oldVal,newVal){const log=JSON.parse(localStorage.getItem('pfsLog')||'[]');log.unshift({time:new Date().toLocaleString('fa-IR'),key,oldVal:oldVal??'—',newVal});localStorage.setItem('pfsLog',JSON.stringify(log.slice(0,30)))}function labelFor(k){return{inflation:'تورم',discount:'نرخ تنزیل',salesDelay:'تأخیر فروش',costShock:'تغییر هزینه',revenueShock:'تغییر درآمد',horizon:'افق تحلیل'}[k]||k}
+function renderChangeLog(){const log=JSON.parse(localStorage.getItem('pfsLog')||'[]');qs('changeLogTable').innerHTML='<thead><tr><th>زمان</th><th>متغیر</th><th>مقدار قبلی</th><th>مقدار جدید</th></tr></thead><tbody>'+(log.length?log.map(l=>`<tr>${tableCell('زمان',l.time)}${tableCell('متغیر',labelFor(l.key))}${tableCell('مقدار قبلی',l.oldVal)}${tableCell('مقدار جدید',l.newVal)}</tr>`).join(''):`<tr>${tableCell('پیام','هنوز تغییری ثبت نشده است.')}</tr>`)+'</tbody>'}
+function getScenarios(){let s=JSON.parse(localStorage.getItem('pfsScenarios')||'[]');if(!s.length){s=[{id:'base',name:'سناریوی پایه PFS',date:new Date().toLocaleString('fa-IR'),state:clone(BASE)}];localStorage.setItem('pfsScenarios',JSON.stringify(s))}return s}
+function saveScenario(){const s=getScenarios(),name='سناریو '+(s.length+1)+' - '+new Date().toLocaleDateString('fa-IR');s.unshift({id:'s'+Date.now(),name,date:new Date().toLocaleString('fa-IR'),state:clone(state)});localStorage.setItem('pfsScenarios',JSON.stringify(s.slice(0,12)));renderScenarioList();toast('Snapshot سناریوی جاری ذخیره شد.')}
+function renderScenarioList(){if(!qs('scenarioList'))return;const s=getScenarios();qs('scenarioList').innerHTML=s.map(sc=>{const mm=model(sc.state);return`<div class="scenario-item ${selectedScenarioIds.includes(sc.id)?'active':''}" data-id="${sc.id}"><h4>${sc.name}</h4><p>${sc.date}</p><p>NPV: ${fmt(mm.npv,1)} | IRR: ${fmt(mm.irrNom,1)}٪ | PBP: ${isFinite(mm.dpbp)?fmt(mm.dpbp,1):'—'}</p></div>`}).join('');document.querySelectorAll('.scenario-item').forEach(el=>el.onclick=()=>{const id=el.dataset.id;if(selectedScenarioIds.includes(id))selectedScenarioIds=selectedScenarioIds.filter(x=>x!==id);else{selectedScenarioIds.push(id);if(selectedScenarioIds.length>2)selectedScenarioIds.shift()}renderScenarioList();drawCompareChart()});drawCompareChart()}
+function drawCompareChart(){if(!qs('chartCompare'))return;const s=getScenarios().filter(sc=>selectedScenarioIds.includes(sc.id));if(s.length<2){qs('comparePanel').innerHTML='<div class="warning">برای مقایسه، ابتدا دو سناریو را از فهرست انتخاب کنید.</div>';if(charts.chartCompare){charts.chartCompare.destroy();charts.chartCompare=null}qs('chartCompare').innerHTML='';return}const data=s.map(sc=>({name:sc.name,m:model(sc.state)}));qs('comparePanel').innerHTML=['NPV اسمی','IRR اسمی','IRR واقعی','نسبت منفعت به هزینه','PBP'].map((k,i)=>`<div class="compare-row"><div><b>${k}</b></div>${data.map(d=>`<div>${i===0?fmt(d.m.npv,1):i===1?fmt(d.m.irrNom,1)+'٪':i===2?fmt(d.m.realIrr,1)+'٪':i===3?fmt(d.m.bc,2):isFinite(d.m.dpbp)?fmt(d.m.dpbp,1)+' سال':'—'}</div>`).join('')}</div>`).join('');barChart('chartCompare',data.map(d=>d.name),[{label:'NPV',data:data.map(d=>d.m.npv),backgroundColor:color('--cyan')},{label:'IRR',data:data.map(d=>d.m.irrNom),backgroundColor:color('--gold')}],'')}
+function exportRows(kind){const m=model();if(kind==='cashflow')return [['سال','درآمد','هزینه','مالیات','جریان آزاد','تجمعی','تجمعی تنزیل‌شده'],...m.years.map((y,i)=>[y,m.revenue[i],m.cost[i],m.tax[i],m.fcf[i],m.cum[i],m.discCum[i]])];if(kind==='revenue'){const total=currentRevenueItems().reduce((a,b)=>a+b.value,0);return [['ردیف درآمدی','نوع','متراژ','درآمد سناریو، همت','سهم درصد'],...currentRevenueItems().map(x=>[x.name,x.type,x.area,x.value,x.value/total*100])]}if(kind==='cost'){const total=currentCostItems().reduce((a,b)=>a+b.value,0);return [['جزء هزینه','مبلغ سناریو، همت','سهم درصد'],...currentCostItems().map(x=>[x.name,x.value,x.value/total*100])]}return []}
+function exportWorkbook(kind='all'){if(!window.XLSX){toast('کتابخانه SheetJS بارگذاری نشد. اتصال اینترنت یا فایل CDN را بررسی کنید.');return}const wb=XLSX.utils.book_new();const add=(name,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name);if(kind==='all'||kind==='cashflow')add('Cashflow',exportRows('cashflow'));if(kind==='all'||kind==='revenue')add('Revenue',exportRows('revenue'));if(kind==='all'||kind==='cost')add('Cost',exportRows('cost'));XLSX.writeFile(wb,`PFS_Bushehr_${kind}_${new Date().toISOString().slice(0,10)}.xlsx`);toast('فایل Excel ساخته شد.')}
+function clearFilters(){filters={revenueType:null,revenueItem:null,costItem:null};update();toast('همه فیلترها پاک شد.')}function toast(msg){const t=qs('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2200)}
+function closeHeaderMenus(){document.querySelectorAll('.action-dropdown[open]').forEach(d=>d.removeAttribute('open'))}
+function bindHeaderMenus(){
+  document.querySelectorAll('.action-dropdown').forEach(d=>{
+    d.addEventListener('toggle',()=>{if(d.open)document.querySelectorAll('.action-dropdown[open]').forEach(o=>{if(o!==d)o.removeAttribute('open')})});
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.action-dropdown'))closeHeaderMenus()});
+  document.querySelectorAll('.action-menu button').forEach(b=>b.addEventListener('click',()=>setTimeout(closeHeaderMenus,30)));
+}
+function bindLogoMenu(){
+  const logo=qs('logoToggle'),mobileLogo=qs('mobileLogoToggle'),mobileFixedLogo=qs('mobileFixedLogo'),app=qs('app');
+  if(!app)return;
+  const toggle=()=>{
+    if(window.matchMedia('(max-width:920px)').matches){
+      app.classList.toggle('mobile-nav-open');
+      return;
+    }
+    app.classList.toggle('nav-expanded');
+  };
+  [logo,mobileLogo,mobileFixedLogo].filter(Boolean).forEach(el=>{
+    el.onclick=toggle;
+    el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
+  });
+}
+function bindNavTooltip(){
+  const tip=qs('navFloatTooltip'),app=qs('app');
+  if(!tip||!app)return;
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.onmouseenter=e=>{
+      if(window.matchMedia('(max-width:920px)').matches)return;
+      if(app.classList.contains('nav-expanded'))return;
+      const r=item.getBoundingClientRect();
+      tip.textContent=item.dataset.title||'';
+      tip.style.top=(r.top+r.height/2)+'px';
+      tip.style.right=(window.innerWidth-r.left+10)+'px';
+      tip.classList.add('show');
+    };
+    item.onmouseleave=()=>tip.classList.remove('show');
+    item.onfocus=e=>{
+      if(window.matchMedia('(max-width:920px)').matches)return;
+      if(app.classList.contains('nav-expanded'))return;
+      const r=item.getBoundingClientRect();
+      tip.textContent=item.dataset.title||'';
+      tip.style.top=(r.top+r.height/2)+'px';
+      tip.style.right=(window.innerWidth-r.left+10)+'px';
+      tip.classList.add('show');
+    };
+    item.onblur=()=>tip.classList.remove('show');
+  });
+}
+
+function installChartWheelGuard(){
+  document.addEventListener('wheel',e=>{
+    const canvas=e.target&&e.target.closest?e.target.closest('.chart-box canvas'):null;
+    if(!canvas)return;
+    if(!e.ctrlKey&&!e.metaKey){
+      e.stopImmediatePropagation();
+    }
+  },{capture:true,passive:true});
+}
+function init(){applyTheme(localStorage.getItem('pfsTheme')||'dark');chartDefaults();installChartWheelGuard();renderNav();renderControls();bindMini();bindHeaderMenus();bindLogoMenu();document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>applyPreset(b.dataset.preset));qs('themeToggle').onclick=toggleTheme;const nt=qs('navToggle');if(nt)nt.onclick=()=>qs('app').classList.toggle('nav-expanded');qs('resetTop').onclick=resetAll;const mfr=qs('mobileFixedReset');if(mfr)mfr.onclick=resetAll;qs('resetAssumptions').onclick=resetAll;qs('saveScenario').onclick=saveScenario;qs('saveScenarioTop').onclick=saveScenario;qs('exportExcelTop').onclick=()=>exportWorkbook('all');qs('clearFilters').onclick=clearFilters;window.addEventListener('resize',debounce(()=>update(),220));update()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+</script>
+
+<script>
+(function(){
+  function q(id){return document.getElementById(id)}
+  function setupV12MobileHeader(){
+    const top=q('mobileTopFixed'), app=q('app'), logo=q('mobileFixedLogo'), inlineLogo=q('mobileLogoToggle');
+    if(!top)return;
+    // In V12, mobile logo is branding only; no drawer/open menu action.
+    [logo, inlineLogo].filter(Boolean).forEach(el=>{
+      el.onclick=function(e){ if(window.matchMedia('(max-width:920px)').matches){ e.preventDefault(); e.stopPropagation(); } };
+      el.onkeydown=function(e){ if(window.matchMedia('(max-width:920px)').matches && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); e.stopPropagation(); } };
+    });
+    if(app)app.classList.remove('mobile-nav-open');
+    let lastY=window.scrollY||0;
+    let ticking=false;
+    function onScrollFrame(){
+      ticking=false;
+      const isMobile=window.matchMedia('(max-width:920px)').matches;
+      if(!isMobile){ top.classList.remove('mobile-top-hidden'); return; }
+      const y=window.scrollY||0;
+      const delta=y-lastY;
+      if(y<20 || delta<-6){
+        top.classList.remove('mobile-top-hidden');
+      }else if(delta>8 && y>70){
+        top.classList.add('mobile-top-hidden');
+      }
+      lastY=y;
+    }
+    window.addEventListener('scroll',()=>{
+      if(!ticking){ticking=true;requestAnimationFrame(onScrollFrame)}
+    },{passive:true});
+    window.addEventListener('resize',()=>{
+      if(!window.matchMedia('(max-width:920px)').matches)top.classList.remove('mobile-top-hidden');
+    },{passive:true});
+  }
+  function disableMobileLogoMenuAfterInit(){
+    // Existing V11 handlers may be attached during init; override them after the current task.
+    setTimeout(setupV12MobileHeader,0);
+    setTimeout(setupV12MobileHeader,120);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',disableMobileLogoMenuAfterInit);
+  else disableMobileLogoMenuAfterInit();
+})();
+</script>
+
+</body>
+</html>
