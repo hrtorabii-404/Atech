@@ -1067,7 +1067,8 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
           lastPinchDistance=pinchDistance(pts);
           return;
         }
-        if(!dragOn) return;
+        const touchPan=e.pointerType==='touch';
+        if(!dragOn &amp;&amp; !touchPan) return;
         dragging=true; stage.classList.add('dragging'); startX=e.clientX-tx; startY=e.clientY-ty;
       },{passive:false});
       viewport.addEventListener('pointermove',e=&gt;{
@@ -1083,7 +1084,9 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
           lastPinchDistance=d;
           return;
         }
-        if(!dragging) return; tx=e.clientX-startX; ty=e.clientY-startY; clamp(); apply();
+        if(!dragging) return;
+        if(e.pointerType==='touch') e.preventDefault();
+        tx=e.clientX-startX; ty=e.clientY-startY; clamp(); apply();
       },{passive:false});
       viewport.addEventListener('pointerup',endPointer); viewport.addEventListener('pointercancel',endPointer); viewport.addEventListener('pointerleave',e=&gt;{ if(e.pointerType!=='touch') endPointer(e); });
     }
@@ -1494,15 +1497,15 @@ function renderPaybackTrend(m){
     labels,
     datasets:[
       {type:'bar',label:'جریان نقدی آزاد سالانه',data:m.fcf,backgroundColor:annualColors,borderColor:'rgba(255,255,255,.20)',borderWidth:1,borderRadius:10,barPercentage:.54,categoryPercentage:.72,order:5},
-      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:window.innerWidth<680?2.8:3.8,pointRadius:window.innerWidth<680?0:4,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:2.6,pointStyle:'circle',fill:false,order:1},
-      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:window.innerWidth<680?3.2:4.8,pointRadius:window.innerWidth<680?0:4.5,pointHoverRadius:9,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:2.8,pointStyle:'rectRot',fill:false,order:2},
+      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:window.innerWidth<680?2.8:3.8,pointRadius:window.innerWidth<680?2.4:4,pointHoverRadius:8,pointHitRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:window.innerWidth<680?1.8:2.6,pointStyle:'circle',fill:false,order:1},
+      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:window.innerWidth<680?3.2:4.8,pointRadius:window.innerWidth<680?2.6:4.5,pointHoverRadius:9,pointHitRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:window.innerWidth<680?1.9:2.8,pointStyle:'rectRot',fill:false,order:2},
       {type:'line',label:'خط سربه‌سری',data:m.years.map(_=>0),borderColor:'rgba(242,248,255,.72)',borderWidth:2.5,pointRadius:0,fill:false,order:3}
     ]
   },{
     layout:{padding:{top:window.innerWidth<680?112:58,right:window.innerWidth<680?10:16,left:window.innerWidth<680?6:8,bottom:window.innerWidth<680?8:4}},
     plugins:{
       paybackMarkers:{years:m.years,simplePayback:m.pp,discountedPayback:m.dpbp,simpleColor,discountedColor},
-      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:window.innerWidth<680?10:14,font:{size:window.innerWidth<680?10:12},filter:item=>item.text!=='خط سربه‌سری'&&item.text!=='سربه‌سری',generateLabels:chart=>{const labels=Chart.defaults.plugins.legend.labels.generateLabels(chart);if(window.innerWidth<680){const map={'جریان نقدی آزاد سالانه':'FCF','جریان تجمعی ساده':'تجمعی','جریان تجمعی تنزیل‌شده':'تنزیلی','خط سربه‌سری':'سربه‌سری'};labels.forEach(l=>{l.text=map[l.text]||l.text;});}return labels;}}},
+      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:window.innerWidth<680?10:14,font:{size:window.innerWidth<680?10:12},filter:item=>item.text!=='خط سربه‌سری'&&item.text!=='سربه‌سری',generateLabels:chart=>{const labels=Chart.defaults.plugins.legend.labels.generateLabels(chart);const map={'جریان نقدی آزاد سالانه':window.innerWidth<680?'FCF سالانه':'جریان نقدی آزاد سالانه','جریان تجمعی ساده':window.innerWidth<680?'تجمعی ساده':'جریان تجمعی ساده','جریان تجمعی تنزیل‌شده':window.innerWidth<680?'تجمعی تنزیلی':'جریان تجمعی تنزیل‌شده','خط سربه‌سری':'سربه‌سری'};labels.forEach(l=>{l.text=map[l.text]||l.text;if(l.datasetIndex===0){l.fillStyle='rgba(255,181,67,.82)';l.strokeStyle='rgba(255,181,67,.96)';l.pointStyle='rectRounded';}});return labels;}}},
       tooltip:{callbacks:{
         label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.parsed.y,1)} همت`,
         afterBody:items=>{
@@ -3972,6 +3975,31 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
   .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
   .payback-sum-card{padding:9px!important;}
   .payback-sum-card strong{font-size:16.5px!important;}
+}
+</style>
+
+
+<style id="v56-payback-touch-refinement">
+/* V56: Payback cards above chart on mobile/tablet, three summary cards visible, compact legend, and touch-map UX preserved. */
+@media(max-width:920px){
+  .payback-trend-card{overflow:visible!important;}
+  .payback-layout{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;align-items:start!important;}
+  .payback-summary{order:1!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:0 0 2px!important;}
+  .payback-box{order:2!important;height:520px!important;min-height:520px!important;overflow:visible!important;}
+  #chartPaybackTrend{height:520px!important;min-height:520px!important;overflow:visible!important;}
+  #chartPaybackTrend canvas{height:520px!important;min-height:520px!important;}
+  .payback-sum-card{display:block!important;padding:9px 8px!important;border-radius:15px!important;min-height:78px!important;}
+  .payback-sum-card:nth-child(3){display:block!important;grid-column:auto!important;min-height:78px!important;}
+  .payback-sum-card b{font-size:10px!important;line-height:1.45!important;margin-bottom:4px!important;}
+  .payback-sum-card strong{font-size:16px!important;line-height:1.35!important;}
+  .payback-sum-card span{font-size:8.8px!important;line-height:1.48!important;}
+}
+@media(max-width:430px){
+  .payback-summary{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;}
+  .payback-sum-card{padding:8px 5px!important;min-height:76px!important;}
+  .payback-sum-card b{font-size:9px!important;}
+  .payback-sum-card strong{font-size:14px!important;}
+  .payback-sum-card span{font-size:8px!important;line-height:1.42!important;}
 }
 </style>
 
