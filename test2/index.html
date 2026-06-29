@@ -594,6 +594,8 @@ button,input,select,textarea,table,.btn,.chip,.filter-pill,.slicer,.kpi-card,.ch
     body.map-fullscreen-active .tool-btn{padding:7px 4px!important;font-size:.66rem!important;}
     body.map-fullscreen-active .map-frame{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important;background:#07111c!important;}
     body.map-fullscreen-active .map-viewport{inset:0!important;touch-action:none!important;}
+    .map-exit-floating{display:none;position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));z-index:2147483600;border:1px solid rgba(255,255,255,.18);background:rgba(7,17,28,.86);color:#fff;border-radius:999px;padding:9px 13px;font-family:inherit;font-weight:800;font-size:.78rem;box-shadow:0 14px 42px rgba(0,0,0,.34);backdrop-filter:blur(18px);cursor:pointer}
+    body.map-fullscreen-active .map-exit-floating{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;}
 
     .mid-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
     #treemapChart{height:430px}
@@ -847,6 +849,7 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
           &lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
+      &lt;button class=&quot;map-exit-floating&quot; id=&quot;mapExitBtn&quot; type=&quot;button&quot;&gt;✕ خروج&lt;/button&gt;
     &lt;/section&gt;
 
     &lt;section class=&quot;mid-grid&quot;&gt;
@@ -1070,11 +1073,16 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
         try{ parent.postMessage({type:'landuse-map-fullscreen',active:!!on},'*'); }catch(err){}
         setTimeout(fit,80); setTimeout(fit,260); setTimeout(fit,700);
       }
-      async function toggleFullscreen(){
-        if(document.body.classList.contains('map-fullscreen-active')){ fallbackFullscreen(false); return; }
+      function closeFullscreen(){
         if(document.fullscreenElement || document.webkitFullscreenElement){
           try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch(err){}
-          setFsBtn(false); setTimeout(fit,160); return;
+        }
+        fallbackFullscreen(false);
+      }
+      async function toggleFullscreen(){
+        if(document.body.classList.contains('map-fullscreen-active')){ closeFullscreen(); return; }
+        if(document.fullscreenElement || document.webkitFullscreenElement){
+          closeFullscreen(); return;
         }
         const req=frame.requestFullscreen||frame.webkitRequestFullscreen||frame.msRequestFullscreen;
         if(req){
@@ -1088,9 +1096,11 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
         }
       }
       fsBtn.onclick=toggleFullscreen;
+      const mapExitBtn=document.getElementById('mapExitBtn');
+      if(mapExitBtn) mapExitBtn.onclick=closeFullscreen;
       document.addEventListener('fullscreenchange',()=&gt;{ const on=!!document.fullscreenElement; setFsBtn(on); setTimeout(fit,160); });
       document.addEventListener('webkitfullscreenchange',()=&gt;{ const on=!!document.webkitFullscreenElement; setFsBtn(on); setTimeout(fit,160); });
-      window.addEventListener('message',e=&gt;{ if(e &amp;&amp; e.data &amp;&amp; e.data.type==='landuse-map-fullscreen-close') fallbackFullscreen(false); });
+      window.addEventListener('message',e=&gt;{ if(e &amp;&amp; e.data &amp;&amp; e.data.type==='landuse-map-fullscreen-close') closeFullscreen(); });
       panBtn.onclick=()=&gt;{dragOn=!dragOn; panBtn.classList.toggle('active',dragOn)};
       viewport.addEventListener('wheel',e=&gt;{ if(!e.ctrlKey) return; e.preventDefault(); zoomAt(e.deltaY&lt;0?1.12:1/1.12, e.offsetX, e.offsetY); }, {passive:false});
 
@@ -3697,12 +3707,20 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
 })();
 </script>
 
-<style id="v57-landuse-map-fullscreen-fallback">
+<button class="landuse-map-exit-parent" id="landuseMapExitParent" type="button">✕ خروج از نقشه</button>
+<style id="v58-landuse-map-fullscreen-exit">
 body.landuse-map-fullscreen-open{overflow:hidden!important;overscroll-behavior:none!important;touch-action:none!important;}
 .landuse-embed.map-fullscreen-fallback{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;z-index:2147483000!important;border-radius:0!important;margin:0!important;background:#07111c!important;box-shadow:none!important;}
+.landuse-map-exit-parent{display:none;position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));z-index:2147483600;border:1px solid rgba(255,255,255,.18);background:rgba(7,17,28,.88);color:#fff;border-radius:999px;padding:9px 13px;font-family:var(--font-main);font-weight:900;font-size:12px;box-shadow:0 14px 42px rgba(0,0,0,.34);backdrop-filter:blur(18px);cursor:pointer}
+body.landuse-map-fullscreen-open .landuse-map-exit-parent{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;}
 </style>
-<script id="v57-landuse-map-fullscreen-fallback">
+<script id="v58-landuse-map-fullscreen-exit">
 (function(){
+  function closeInner(){
+    var f=document.getElementById('landuseFrame');
+    setMapFullscreen(false);
+    try{ if(f && f.contentWindow) f.contentWindow.postMessage({type:'landuse-map-fullscreen-close'},'*'); }catch(err){}
+  }
   function setMapFullscreen(active){
     var f=document.getElementById('landuseFrame');
     if(!f)return;
@@ -3717,9 +3735,10 @@ body.landuse-map-fullscreen-open{overflow:hidden!important;overscroll-behavior:n
     if(e.key!=='Escape' && e.key!=='Esc')return;
     var f=document.getElementById('landuseFrame');
     if(!f || !f.classList.contains('map-fullscreen-fallback'))return;
-    setMapFullscreen(false);
-    try{f.contentWindow.postMessage({type:'landuse-map-fullscreen-close'},'*');}catch(err){}
+    closeInner();
   });
+  var x=document.getElementById('landuseMapExitParent');
+  if(x)x.addEventListener('click',closeInner,false);
 })();
 </script>
 
@@ -4076,6 +4095,6 @@ body.landuse-map-fullscreen-open{overflow:hidden!important;overscroll-behavior:n
 }
 </style>
 
-<!-- V57: mobile map fullscreen fallback added for iOS/Android; zoom, pinch, pan and desktop fullscreen preserved. -->
+<!-- V58: explicit fullscreen exit buttons added for mobile map fallback/native states; map zoom, pinch and touch pan preserved. -->
 </body>
 </html>
