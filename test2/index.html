@@ -1381,23 +1381,23 @@ function ensurePaybackTrendPlugin(){
         if(compact){
           const shortLabel=label.includes('تنزیل')?'DPBP':'PP';
           const compactText=`${shortLabel} ${String(sub).replace(' سال','')}`;
-          const pillW=ultraCompact?74:84;
-          const pillH=ultraCompact?23:25;
-          const lane=clamp(cfg.yLane ?? top+10,top+5,Math.max(top+5,zero-pillH-12));
-          const pillX=clamp(safeX-pillW/2,left+4,right-pillW-4);
+          const pillW=ultraCompact?90:106;
+          const pillH=ultraCompact?29:31;
+          const lane=clamp(cfg.yLane ?? top+10,top+6,Math.max(top+6,zero-pillH-18));
+          const pillX=clamp(safeX-pillW/2,left+5,right-pillW-5);
           ctx.save();
-          ctx.setLineDash([4,5]);
-          ctx.lineWidth=1.15;
+          ctx.setLineDash([4,6]);
+          ctx.lineWidth=1.25;
           ctx.strokeStyle=color;
-          ctx.globalAlpha=.78;
-          ctx.beginPath();ctx.moveTo(xPos,top+8);ctx.lineTo(xPos,bottom-8);ctx.stroke();
+          ctx.globalAlpha=.84;
+          ctx.beginPath();ctx.moveTo(xPos,top+10);ctx.lineTo(xPos,bottom-10);ctx.stroke();
           ctx.setLineDash([]);ctx.globalAlpha=1;
-          ctx.shadowColor=color;ctx.shadowBlur=10;
-          ctx.fillStyle='rgba(4,13,24,.94)';ctx.strokeStyle=color;
-          roundRect(ctx,pillX,lane,pillW,pillH,12);ctx.fill();ctx.stroke();
+          ctx.shadowColor=color;ctx.shadowBlur=12;
+          ctx.fillStyle='rgba(4,13,24,.97)';ctx.strokeStyle=color;
+          roundRect(ctx,pillX,lane,pillW,pillH,14);ctx.fill();ctx.stroke();
           ctx.shadowBlur=0;
           ctx.textAlign='center';ctx.direction='ltr';ctx.textBaseline='middle';
-          ctx.font=`900 ${ultraCompact?9.5:10.5}px Vazirmatn, sans-serif`;
+          ctx.font=`950 ${ultraCompact?11:12}px Vazirmatn, sans-serif`;
           ctx.fillStyle='#f7fdff';
           ctx.fillText(compactText,pillX+pillW/2,lane+pillH/2+1);
           ctx.restore();
@@ -1454,11 +1454,11 @@ function ensurePaybackTrendPlugin(){
       const closeMarkers=gap < (ultraCompact?84:(compact?118:150));
       let simpleCfg, discountedCfg;
       if(compact){
-        simpleCfg={yLane:top+(ultraCompact?16:20),shiftX:0,shape:'circle'};
-        discountedCfg={yLane:top+(ultraCompact?56:66),shiftX:0,shape:'diamond'};
+        simpleCfg={yLane:top+(ultraCompact?18:22),shiftX:0,shape:'circle'};
+        discountedCfg={yLane:top+(ultraCompact?62:70),shiftX:0,shape:'diamond'};
         if(closeMarkers){
-          simpleCfg.yLane=top+(ultraCompact?14:18);
-          discountedCfg.yLane=top+(ultraCompact?54:64);
+          simpleCfg.yLane=top+(ultraCompact?16:20);
+          discountedCfg.yLane=top+(ultraCompact?60:68);
         }
       }else{
         simpleCfg={yLane:top+54,shiftX:-68,shape:'circle'};
@@ -1494,15 +1494,15 @@ function renderPaybackTrend(m){
     labels,
     datasets:[
       {type:'bar',label:'جریان نقدی آزاد سالانه',data:m.fcf,backgroundColor:annualColors,borderColor:'rgba(255,255,255,.20)',borderWidth:1,borderRadius:10,barPercentage:.54,categoryPercentage:.72,order:5},
-      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:3.8,pointRadius:4,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:2.6,pointStyle:'circle',fill:false,order:1},
-      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:4.8,pointRadius:4.5,pointHoverRadius:9,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:2.8,pointStyle:'rectRot',fill:false,order:2},
+      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:window.innerWidth<680?2.8:3.8,pointRadius:window.innerWidth<680?0:4,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:2.6,pointStyle:'circle',fill:false,order:1},
+      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:window.innerWidth<680?3.2:4.8,pointRadius:window.innerWidth<680?0:4.5,pointHoverRadius:9,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:2.8,pointStyle:'rectRot',fill:false,order:2},
       {type:'line',label:'خط سربه‌سری',data:m.years.map(_=>0),borderColor:'rgba(242,248,255,.72)',borderWidth:2.5,pointRadius:0,fill:false,order:3}
     ]
   },{
-    layout:{padding:{top:window.innerWidth<680?86:58,right:16,left:8,bottom:4}},
+    layout:{padding:{top:window.innerWidth<680?112:58,right:window.innerWidth<680?10:16,left:window.innerWidth<680?6:8,bottom:window.innerWidth<680?8:4}},
     plugins:{
       paybackMarkers:{years:m.years,simplePayback:m.pp,discountedPayback:m.dpbp,simpleColor,discountedColor},
-      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:window.innerWidth<680?10:12},filter:item=>item.text!=='خط سربه‌سری'}},
+      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:window.innerWidth<680?10:14,font:{size:window.innerWidth<680?10:12},filter:item=>item.text!=='خط سربه‌سری'&&item.text!=='سربه‌سری',generateLabels:chart=>{const labels=Chart.defaults.plugins.legend.labels.generateLabels(chart);if(window.innerWidth<680){const map={'جریان نقدی آزاد سالانه':'FCF','جریان تجمعی ساده':'تجمعی','جریان تجمعی تنزیل‌شده':'تنزیلی','خط سربه‌سری':'سربه‌سری'};labels.forEach(l=>{l.text=map[l.text]||l.text;});}return labels;}}},
       tooltip:{callbacks:{
         label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.parsed.y,1)} همت`,
         afterBody:items=>{
@@ -1515,7 +1515,7 @@ function renderPaybackTrend(m){
       }}
     },
     scales:{
-      x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:window.innerWidth<680?false:true,font:{size:window.innerWidth<680?9.5:12},color:'rgba(224,240,255,.82)',callback:function(value,index){if(window.innerWidth<680){const yr=m.years[index];return [1,5,10,15,20].includes(yr)?'سال '+yr:'';}return this.getLabelForValue(value);}}},
+      x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:false,font:{size:window.innerWidth<680?10:12},color:'rgba(224,240,255,.82)',callback:function(value,index){if(window.innerWidth<680){const yr=m.years[index];if(!yr)return '';const last=m.years[m.years.length-1];const small=window.innerWidth<=430;const show=yr===1||yr===last||(small?yr%3===0:yr%2===0);return show?Number(yr).toLocaleString('fa-IR'):'';}return this.getLabelForValue(value);}}},
       y:{min:yMin,max:yMax,grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,.58)':(ctx.tick.value<0?'rgba(255,95,120,.12)':'rgba(255,255,255,.075)'),lineWidth:ctx=>ctx.tick.value===0?2:1},ticks:{callback:v=>fmt(v,0),color:ctx=>ctx.tick.value<0?'rgba(255,157,171,.88)':'rgba(214,232,247,.76)'}}
     }
   });
@@ -3948,6 +3948,30 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
   .payback-box{height:450px!important;}
   .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
   .payback-sum-card strong{font-size:17px!important;}
+}
+</style>
+
+
+<style id="v55-mobile-payback-view">
+/* V55: Mobile Payback View — نمودار بازگشت سرمایه در موبایل خواناتر می‌شود؛ دسکتاپ و نقشه دست‌نخورده‌اند. */
+@media(max-width:680px){
+  .payback-trend-card{margin-top:28px!important;overflow:visible!important;}
+  .payback-layout{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;align-items:start!important;}
+  .payback-box{order:1!important;height:520px!important;min-height:520px!important;overflow:visible!important;}
+  #chartPaybackTrend{height:520px!important;overflow:visible!important;}
+  #chartPaybackTrend canvas{height:520px!important;min-height:520px!important;}
+  .payback-summary{order:2!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin-top:0!important;}
+  .payback-sum-card{padding:10px!important;border-radius:15px!important;min-height:82px!important;}
+  .payback-sum-card b{font-size:10.5px!important;margin-bottom:4px!important;}
+  .payback-sum-card strong{font-size:18px!important;line-height:1.35!important;}
+  .payback-sum-card span{font-size:9.2px!important;line-height:1.55!important;}
+  .payback-sum-card:nth-child(3){display:none!important;}
+}
+@media(max-width:430px){
+  .payback-box,#chartPaybackTrend,#chartPaybackTrend canvas{height:520px!important;min-height:520px!important;}
+  .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .payback-sum-card{padding:9px!important;}
+  .payback-sum-card strong{font-size:16.5px!important;}
 }
 </style>
 
