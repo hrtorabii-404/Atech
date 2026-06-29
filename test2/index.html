@@ -578,6 +578,22 @@ button,input,select,textarea,table,.btn,.chip,.filter-pill,.slicer,.kpi-card,.ch
     .map-stage{position:absolute;left:0;top:0;transform-origin:top left;cursor:grab;user-select:none}
     .map-stage.dragging{cursor:grabbing}
     .map-stage img{display:block;max-width:none;pointer-events:none;-webkit-user-drag:none}
+    /* V57 mobile fullscreen fallback for map: works on iOS/Android when Fullscreen API is unavailable */
+    body.map-fullscreen-active{overflow:hidden!important;background:#07111c!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;overscroll-behavior:none!important;touch-action:none!important;}
+    body.map-fullscreen-active .shell{max-width:none!important;width:100vw!important;height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden!important;}
+    body.map-fullscreen-active .header,
+    body.map-fullscreen-active .stat-strip,
+    body.map-fullscreen-active .top-grid,
+    body.map-fullscreen-active .mid-grid,
+    body.map-fullscreen-active .matrix-panel{display:none!important;}
+    body.map-fullscreen-active .map-panel{position:fixed!important;inset:0!important;z-index:2147483000!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#07111c!important;box-shadow:none!important;}
+    body.map-fullscreen-active .map-panel .panel-title{display:none!important;}
+    body.map-fullscreen-active .map-toolbar{position:absolute!important;top:max(8px,env(safe-area-inset-top,0px))!important;right:8px!important;left:8px!important;z-index:20!important;margin:0!important;padding:6px!important;border-radius:16px!important;background:rgba(7,17,28,.72)!important;border:1px solid rgba(255,255,255,.10)!important;backdrop-filter:blur(16px)!important;}
+    body.map-fullscreen-active .map-toolbar .hint{display:none!important;}
+    body.map-fullscreen-active .toolset{width:100%!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important;}
+    body.map-fullscreen-active .tool-btn{padding:7px 4px!important;font-size:.66rem!important;}
+    body.map-fullscreen-active .map-frame{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important;background:#07111c!important;}
+    body.map-fullscreen-active .map-viewport{inset:0!important;touch-action:none!important;}
 
     .mid-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
     #treemapChart{height:430px}
@@ -1043,7 +1059,38 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
       function fit(){ const vw=viewport.clientWidth, vh=viewport.clientHeight; const iw=img.naturalWidth||img.width||1600, ih=img.naturalHeight||img.height||900; if(!vw||!vh||!iw||!ih){ setTimeout(fit,80); return; } stage.style.width=iw+'px'; stage.style.height=ih+'px'; baseScale=Math.min(vw/iw, vh/ih); scale=baseScale; tx=(vw-iw*scale)/2; ty=(vh-ih*scale)/2; clamp(); apply(); }
       function zoomAt(f,cx=viewport.clientWidth/2,cy=viewport.clientHeight/2){ const prev=scale; const next=Math.min(baseScale*6, Math.max(baseScale, scale*f)); if(next===prev) return; scale=next; tx=cx-((cx-tx)*(scale/prev)); ty=cy-((cy-ty)*(scale/prev)); clamp(); apply(); }
       img.addEventListener('load', fit); if(img.complete) fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange',()=&gt;setTimeout(fit,240)); try{ new ResizeObserver(()=&gt;requestAnimationFrame(fit)).observe(viewport); }catch(e){} setTimeout(fit,120); setTimeout(fit,600); setTimeout(fit,1200);
-      document.getElementById('zoomInBtn').onclick=()=&gt;zoomAt(1.2); document.getElementById('zoomOutBtn').onclick=()=&gt;zoomAt(1/1.2); document.getElementById('resetViewBtn').onclick=fit; document.getElementById('fullscreenBtn').onclick=()=&gt;frame.requestFullscreen?.();
+      document.getElementById('zoomInBtn').onclick=()=&gt;zoomAt(1.2);
+      document.getElementById('zoomOutBtn').onclick=()=&gt;zoomAt(1/1.2);
+      document.getElementById('resetViewBtn').onclick=fit;
+      const fsBtn=document.getElementById('fullscreenBtn');
+      function setFsBtn(on){ if(fsBtn) fsBtn.textContent=on?'خروج':'تمام‌صفحه'; }
+      function fallbackFullscreen(on){
+        document.body.classList.toggle('map-fullscreen-active',!!on);
+        setFsBtn(!!on);
+        try{ parent.postMessage({type:'landuse-map-fullscreen',active:!!on},'*'); }catch(err){}
+        setTimeout(fit,80); setTimeout(fit,260); setTimeout(fit,700);
+      }
+      async function toggleFullscreen(){
+        if(document.body.classList.contains('map-fullscreen-active')){ fallbackFullscreen(false); return; }
+        if(document.fullscreenElement || document.webkitFullscreenElement){
+          try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch(err){}
+          setFsBtn(false); setTimeout(fit,160); return;
+        }
+        const req=frame.requestFullscreen||frame.webkitRequestFullscreen||frame.msRequestFullscreen;
+        if(req){
+          try{
+            const result=req.call(frame);
+            if(result &amp;&amp; result.then) await result;
+            setFsBtn(true); setTimeout(fit,160); setTimeout(fit,520);
+          }catch(err){ fallbackFullscreen(true); }
+        }else{
+          fallbackFullscreen(true);
+        }
+      }
+      fsBtn.onclick=toggleFullscreen;
+      document.addEventListener('fullscreenchange',()=&gt;{ const on=!!document.fullscreenElement; setFsBtn(on); setTimeout(fit,160); });
+      document.addEventListener('webkitfullscreenchange',()=&gt;{ const on=!!document.webkitFullscreenElement; setFsBtn(on); setTimeout(fit,160); });
+      window.addEventListener('message',e=&gt;{ if(e &amp;&amp; e.data &amp;&amp; e.data.type==='landuse-map-fullscreen-close') fallbackFullscreen(false); });
       panBtn.onclick=()=&gt;{dragOn=!dragOn; panBtn.classList.toggle('active',dragOn)};
       viewport.addEventListener('wheel',e=&gt;{ if(!e.ctrlKey) return; e.preventDefault(); zoomAt(e.deltaY&lt;0?1.12:1/1.12, e.offsetX, e.offsetY); }, {passive:false});
 
@@ -3650,6 +3697,32 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
 })();
 </script>
 
+<style id="v57-landuse-map-fullscreen-fallback">
+body.landuse-map-fullscreen-open{overflow:hidden!important;overscroll-behavior:none!important;touch-action:none!important;}
+.landuse-embed.map-fullscreen-fallback{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;z-index:2147483000!important;border-radius:0!important;margin:0!important;background:#07111c!important;box-shadow:none!important;}
+</style>
+<script id="v57-landuse-map-fullscreen-fallback">
+(function(){
+  function setMapFullscreen(active){
+    var f=document.getElementById('landuseFrame');
+    if(!f)return;
+    f.classList.toggle('map-fullscreen-fallback',!!active);
+    document.body.classList.toggle('landuse-map-fullscreen-open',!!active);
+  }
+  window.addEventListener('message',function(e){
+    if(!e || !e.data || e.data.type!=='landuse-map-fullscreen')return;
+    setMapFullscreen(!!e.data.active);
+  },false);
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape' && e.key!=='Esc')return;
+    var f=document.getElementById('landuseFrame');
+    if(!f || !f.classList.contains('map-fullscreen-fallback'))return;
+    setMapFullscreen(false);
+    try{f.contentWindow.postMessage({type:'landuse-map-fullscreen-close'},'*');}catch(err){}
+  });
+})();
+</script>
+
 <style id="v44-landuse-height-stabilizer">
 .landuse-main-page{padding-bottom:0!important;}
 .landuse-embed{min-height:0!important;max-height:none!important;}
@@ -4003,5 +4076,6 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
 }
 </style>
 
+<!-- V57: mobile map fullscreen fallback added for iOS/Android; zoom, pinch, pan and desktop fullscreen preserved. -->
 </body>
 </html>
