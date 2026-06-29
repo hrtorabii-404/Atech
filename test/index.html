@@ -407,26 +407,6 @@ button,input,select,textarea,table,.btn,.chip,.filter-pill,.slicer,.kpi-card,.ch
 .payback-summary{display:grid;gap:10px;align-content:start}.payback-sum-card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.035));border-radius:18px;padding:12px;min-width:0}.payback-sum-card b{display:block;color:#fff;font-size:13px;margin-bottom:6px}.payback-sum-card strong{display:block;font-size:22px;color:var(--cyan);margin-bottom:2px}.payback-sum-card span{display:block;color:var(--muted);font-size:11px;line-height:1.8}.payback-sum-card.green strong{color:var(--green)}.payback-sum-card.cyan strong{color:var(--cyan)}.payback-sum-card.gold strong{color:var(--gold)}.payback-sum-card.purple strong{color:var(--purple)}.payback-sum-card.red strong{color:var(--red)}
 @media(max-width:1100px){.payback-layout{grid-template-columns:1fr}.payback-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.payback-box{height:460px}}
 @media(max-width:680px){.payback-head{display:block}.payback-head b{display:inline-block;margin-top:6px}.payback-summary{grid-template-columns:1fr}.payback-box{height:330px}.payback-sum-card strong{font-size:20px}}
-
-
-/* V54 mobile payback readability + KPI DPBP tone support
-   Scoped to mobile charts/cards only; map structure and matrix structure are unchanged. */
-@media(max-width:760px){
-  .payback-trend-card{margin-top:18px!important;overflow:visible!important;}
-  .payback-head h3{font-size:14px!important;line-height:1.75!important;}
-  .payback-head span{font-size:11px!important;line-height:1.7!important;}
-  .payback-box{height:520px!important;min-height:520px!important;}
-  .payback-layout{gap:10px!important;}
-  .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
-  .payback-sum-card{padding:10px!important;border-radius:16px!important;}
-  .payback-sum-card b{font-size:11px!important;margin-bottom:4px!important;}
-  .payback-sum-card strong{font-size:17px!important;line-height:1.4!important;}
-  .payback-sum-card span{font-size:10px!important;line-height:1.65!important;}
-}
-@media(max-width:380px){
-  .payback-box{height:550px!important;min-height:550px!important;}
-  .payback-summary{grid-template-columns:1fr!important;}
-}
 </style>
 </head>
 <body>
@@ -1058,24 +1038,54 @@ table.matrix{min-width:0!important;width:100%!important;table-layout:fixed!impor
       const viewport=document.getElementById('mapViewport'), stage=document.getElementById('mapStage'), img=document.getElementById('mapImage'), frame=document.getElementById('mapFrame');
       const panBtn=document.getElementById('panToggleBtn');
       let baseScale=1, scale=1, tx=0, ty=0, dragOn=false, dragging=false, startX=0, startY=0;
-      let pinchOn=false, lastPinchDist=0;
       function apply(){ stage.style.transform=`translate(${tx}px, ${ty}px) scale(${scale})`; }
       function clamp(){ const vw=viewport.clientWidth, vh=viewport.clientHeight; const iw=(img.naturalWidth||1600)*scale, ih=(img.naturalHeight||900)*scale; tx = iw&lt;=vw ? (vw-iw)/2 : Math.min(0, Math.max(vw-iw, tx)); ty = ih&lt;=vh ? (vh-ih)/2 : Math.min(0, Math.max(vh-ih, ty)); }
       function fit(){ const vw=viewport.clientWidth, vh=viewport.clientHeight; const iw=img.naturalWidth||img.width||1600, ih=img.naturalHeight||img.height||900; if(!vw||!vh||!iw||!ih){ setTimeout(fit,80); return; } stage.style.width=iw+'px'; stage.style.height=ih+'px'; baseScale=Math.min(vw/iw, vh/ih); scale=baseScale; tx=(vw-iw*scale)/2; ty=(vh-ih*scale)/2; clamp(); apply(); }
       function zoomAt(f,cx=viewport.clientWidth/2,cy=viewport.clientHeight/2){ const prev=scale; const next=Math.min(baseScale*6, Math.max(baseScale, scale*f)); if(next===prev) return; scale=next; tx=cx-((cx-tx)*(scale/prev)); ty=cy-((cy-ty)*(scale/prev)); clamp(); apply(); }
-      function touchDistance(t0,t1){ const dx=t0.clientX-t1.clientX, dy=t0.clientY-t1.clientY; return Math.sqrt(dx*dx+dy*dy); }
-      function touchCenter(t0,t1){ const r=viewport.getBoundingClientRect(); return {x:(t0.clientX+t1.clientX)/2-r.left,y:(t0.clientY+t1.clientY)/2-r.top}; }
       img.addEventListener('load', fit); if(img.complete) fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange',()=&gt;setTimeout(fit,240)); try{ new ResizeObserver(()=&gt;requestAnimationFrame(fit)).observe(viewport); }catch(e){} setTimeout(fit,120); setTimeout(fit,600); setTimeout(fit,1200);
       document.getElementById('zoomInBtn').onclick=()=&gt;zoomAt(1.2); document.getElementById('zoomOutBtn').onclick=()=&gt;zoomAt(1/1.2); document.getElementById('resetViewBtn').onclick=fit; document.getElementById('fullscreenBtn').onclick=()=&gt;frame.requestFullscreen?.();
       panBtn.onclick=()=&gt;{dragOn=!dragOn; panBtn.classList.toggle('active',dragOn)};
       viewport.addEventListener('wheel',e=&gt;{ if(!e.ctrlKey) return; e.preventDefault(); zoomAt(e.deltaY&lt;0?1.12:1/1.12, e.offsetX, e.offsetY); }, {passive:false});
-      viewport.addEventListener('touchstart',e=&gt;{ if(e.touches&&e.touches.length===2){ pinchOn=true; dragging=false; stage.classList.remove('dragging'); lastPinchDist=touchDistance(e.touches[0],e.touches[1]); e.preventDefault(); } }, {passive:false});
-      viewport.addEventListener('touchmove',e=&gt;{ if(!pinchOn||!e.touches||e.touches.length!==2) return; e.preventDefault(); const d=touchDistance(e.touches[0],e.touches[1]); if(lastPinchDist&gt;0&&isFinite(d)){ const c=touchCenter(e.touches[0],e.touches[1]); zoomAt(d/lastPinchDist,c.x,c.y); } lastPinchDist=d; }, {passive:false});
-      viewport.addEventListener('touchend',e=&gt;{ if(!e.touches||e.touches.length&lt;2){ pinchOn=false; lastPinchDist=0; } }, {passive:true});
-      viewport.addEventListener('touchcancel',()=&gt;{ pinchOn=false; lastPinchDist=0; }, {passive:true});
-      viewport.addEventListener('pointerdown',e=&gt;{ if(pinchOn||!dragOn) return; dragging=true; stage.classList.add('dragging'); startX=e.clientX-tx; startY=e.clientY-ty; viewport.setPointerCapture(e.pointerId);});
-      viewport.addEventListener('pointermove',e=&gt;{ if(!dragging||pinchOn) return; tx=e.clientX-startX; ty=e.clientY-startY; clamp(); apply();});
-      const stop=()=&gt;{dragging=false; stage.classList.remove('dragging')}; viewport.addEventListener('pointerup',stop); viewport.addEventListener('pointercancel',stop);
+
+      /* V54: pinch zoom موبایل؛ بدون تغییر منطق دکمه‌ها و Ctrl+Scroll */
+      const pointers=new Map();
+      let pinching=false, lastPinchDistance=0;
+      const pinchDistance=pts=&gt;Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+      const pinchCenter=pts=&gt;{ const r=viewport.getBoundingClientRect(); return {x:((pts[0].x+pts[1].x)/2)-r.left,y:((pts[0].y+pts[1].y)/2)-r.top}; };
+      function endPointer(e){
+        pointers.delete(e.pointerId);
+        if(pointers.size&lt;2){pinching=false;lastPinchDistance=0;}
+        if(dragging){dragging=false;stage.classList.remove('dragging');}
+      }
+      viewport.addEventListener('pointerdown',e=&gt;{
+        pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        try{viewport.setPointerCapture(e.pointerId);}catch(err){}
+        if(e.pointerType==='touch') e.preventDefault();
+        if(pointers.size===2){
+          const pts=[...pointers.values()].slice(0,2);
+          pinching=true;dragging=false;stage.classList.remove('dragging');
+          lastPinchDistance=pinchDistance(pts);
+          return;
+        }
+        if(!dragOn) return;
+        dragging=true; stage.classList.add('dragging'); startX=e.clientX-tx; startY=e.clientY-ty;
+      },{passive:false});
+      viewport.addEventListener('pointermove',e=&gt;{
+        if(pointers.has(e.pointerId)) pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        if(pinching &amp;&amp; pointers.size&gt;=2){
+          if(e.pointerType==='touch') e.preventDefault();
+          const pts=[...pointers.values()].slice(0,2);
+          const d=pinchDistance(pts);
+          if(lastPinchDistance&gt;0 &amp;&amp; isFinite(d)){
+            const c=pinchCenter(pts);
+            zoomAt(d/lastPinchDistance,c.x,c.y);
+          }
+          lastPinchDistance=d;
+          return;
+        }
+        if(!dragging) return; tx=e.clientX-startX; ty=e.clientY-startY; clamp(); apply();
+      },{passive:false});
+      viewport.addEventListener('pointerup',endPointer); viewport.addEventListener('pointercancel',endPointer); viewport.addEventListener('pointerleave',e=&gt;{ if(e.pointerType!=='touch') endPointer(e); });
     }
 
     buildRanking(); buildTreemap(); buildFunnel(); buildMatrix(); refreshSelected(); initMap();
@@ -1220,7 +1230,7 @@ function clone(o){return JSON.parse(JSON.stringify(o))}function qs(id){return do
 
 function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('pfsTheme',theme);const lab=qs('themeLabel');if(lab)lab.textContent=theme==='light'?'Light':'Dark'}
 function toggleTheme(){applyTheme((document.documentElement.dataset.theme||'dark')==='light'?'dark':'light');setTimeout(()=>update(),40)}
-function statusClass(v,t){if(t==='positive')return v>0?'green':'red';if(t==='ratio')return v>=1.5?'green':v>=1?'yellow':'red';if(t==='payback')return v<=6?'green':v<=10?'yellow':'red';if(t==='paybackDiscounted')return v<=7.5?'green':v<=11?'yellow':'red';if(t==='margin')return v>=20?'green':v>=0?'yellow':'red';return'green'}
+function statusClass(v,t){if(t==='positive')return v>0?'green':'red';if(t==='ratio')return v>=1.5?'green':v>=1?'yellow':'red';if(t==='payback')return v<=7?'green':v<=10?'yellow':'red';if(t==='discountedPayback')return v<=7.5?'green':v<=11?'yellow':'red';if(t==='margin')return v>=20?'green':v>=0?'yellow':'red';return'green'}
 function baseRealArray(a){return a.map((v,i)=>v/Math.pow(1+BASE.inflation/100,i))}function applyHorizon(a,h=state.horizon){return a.slice(0,Math.min(Number(h),20))}function baseDevForYearIndex(i){return i<5?1:(i<10?1.08:(i<15?1.12:1.15))}function currentDevForYearIndex(st,i){return st.dev[Math.min(Math.floor(i/5),st.dev.length-1)]||1}
 function currentRevenueItems(st=state){const lf=((1-(st.municipalShare??20)/100)/0.8);return BASE.revenueItems.map(it=>{let f=1;if(it.name.includes('ساختمان مسکونی پرتراکم'))f=(st.densePrice/1000)*(st.sellabilityDense/90);else if(it.name.includes('ساختمان مسکونی کم'))f=(st.lowPrice/1400)*(st.sellabilityLow/85);else if(it.name.includes('ساختمان مختلط'))f=(st.mixedPrice/1500)*(st.sellabilityMixed/85);else if(it.name.includes('ساختمان گردشگری'))f=(st.tourBuildPrice/2500);else if(it.type==='زمین‌محور')f=lf*(it.name.includes('توریستی')||it.name.includes('ورزشی')||it.name.includes('صنایع')?st.tourLandPrice/200:1);return{...it,value:it.base*f}})}
 function currentCostItems(st=state){const land=st.landPrice/10,bDense=212.35381*(st.buildingCostDense/600),bLow=74.648262*((st.buildingCostLow||st.buildingCostDense)/600),bMixed=110.502434*(st.buildingCostMixed/500),bTour=9.736381*(st.buildingCostTour/800);return BASE.costItems.map(it=>{let v=it.base;if(it.name==='زمین')v=it.base*land;if(it.name==='ساخت ابنیه')v=bDense+bLow+bMixed+bTour;if(it.name.includes('گذر')||it.name.includes('تأسیسات'))v=it.base*(1+st.infraShock/100);if(it.name.includes('پیش‌بینی'))v=it.base*(1+st.contingencyShock/100);return{...it,value:v}})}
@@ -1252,14 +1262,15 @@ function update(){renderScenarioStrip();renderFilterPill();if(!window.Chart){if(
 function renderFilterPill(){const parts=[];if(filters.revenueType)parts.push('نوع درآمد: '+filters.revenueType);if(filters.revenueItem)parts.push('ردیف درآمد: '+filters.revenueItem);if(filters.costItem)parts.push('جزء هزینه: '+filters.costItem);const pill=qs('filterPill');if(parts.length){pill.style.display='inline-flex';pill.textContent='فیلتر فعال | '+parts.join(' | ')}else{pill.style.display='none';pill.textContent=''}}
 
 function sparkline(arr){const vals=(arr||[]).map(Number).filter(Number.isFinite);if(vals.length<2)return'';let min=Math.min(...vals),max=Math.max(...vals);if(min===max){min-=1;max+=1}const w=160,h=34,p=3;const pts=vals.map((v,i)=>`${p+(w-2*p)*(i/(vals.length-1))},${h-p-(h-2*p)*((v-min)/(max-min))}`).join(' ');return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area" d="M${pts.split(' ')[0]} L${pts} L${w-p},${h-p} L${p},${h-p} Z"></path><polyline points="${pts}"></polyline></svg>`}
-function renderKpis(m){const ratioTrend=m.years.map((_,i)=>m.revenue.slice(0,i+1).reduce((a,b)=>a+b,0)/(m.cost.slice(0,i+1).reduce((a,b)=>a+b,0)+m.tax.slice(0,i+1).reduce((a,b)=>a+b,0)||1));const k=[{t:'IRR اسمی',v:fmt(m.irrNom,1)+'٪',s:'بازده داخلی مدل اسمی',st:statusClass(m.irrNom-state.discount,'margin'),b:'IRR',page:'sensitivity',anchor:'heatmap',spark:m.fcf},{t:'IRR واقعی',v:fmt(m.realIrr,1)+'٪',s:'تعدیل‌شده با تورم',st:statusClass(m.realIrr,'margin'),b:'RIRR',page:'sensitivity',anchor:'chartIRRSensitivity',spark:m.fcf.map((x,i)=>x/Math.pow(1+state.inflation/100,i))},{t:'NPV اسمی',v:fmt(m.npv,2),s:'همت / نرخ مانع اسمی',st:statusClass(m.npv,'positive'),b:'NPV',page:'sensitivity',anchor:'chartTornado',spark:m.discCum},{t:'B/C',v:fmt(m.bc,2),s:'نسبت منفعت به هزینه',st:statusClass(m.bc,'ratio'),b:'B/C',page:'cashflow',anchor:'chartRevCost',spark:ratioTrend},{t:'بازگشت ساده',v:isFinite(m.pp)?fmt(m.pp,1):'—',s:'سال',st:statusClass(m.pp,'payback'),b:'PP',page:'cashflow',anchor:'paybackTrendCard',spark:m.cum},{t:'بازگشت تنزیلی',v:isFinite(m.dpbp)?fmt(m.dpbp,1):'—',s:'سال',st:statusClass(m.dpbp,'paybackDiscounted'),b:'DPBP',page:'cashflow',anchor:'chartDiscountedCum',spark:m.discCum}];qs('kpiGrid').innerHTML=k.map(x=>`<div class="kpi-card drill ${x.st}" data-page="${x.page}" data-anchor="${x.anchor}" title="مشاهده جزئیات"><span class="metric-glyph">${x.b}</span><div class="kpi-spark">${sparkline(x.spark)}</div><div class="kpi-head"><span>${x.t}</span><i class="status ${x.st}"></i></div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.s}</div><span class="delta ${x.st==='red'?'down':x.st==='yellow'?'warn':'up'}">جزئیات</span></div>`).join('');document.querySelectorAll('.kpi-card.drill').forEach(c=>c.onclick=()=>showPage(c.dataset.page,c.dataset.anchor));qs('smartMessage').className='warning '+((m.npv>0&&m.irrNom>state.discount)?'good':m.npv<0?'bad':'');qs('smartMessage').innerHTML=smartText(m)}
+function renderKpis(m){const ratioTrend=m.years.map((_,i)=>m.revenue.slice(0,i+1).reduce((a,b)=>a+b,0)/(m.cost.slice(0,i+1).reduce((a,b)=>a+b,0)+m.tax.slice(0,i+1).reduce((a,b)=>a+b,0)||1));const k=[{t:'IRR اسمی',v:fmt(m.irrNom,1)+'٪',s:'بازده داخلی مدل اسمی',st:statusClass(m.irrNom-state.discount,'margin'),b:'IRR',page:'sensitivity',anchor:'heatmap',spark:m.fcf},{t:'IRR واقعی',v:fmt(m.realIrr,1)+'٪',s:'تعدیل‌شده با تورم',st:statusClass(m.realIrr,'margin'),b:'RIRR',page:'sensitivity',anchor:'chartIRRSensitivity',spark:m.fcf.map((x,i)=>x/Math.pow(1+state.inflation/100,i))},{t:'NPV اسمی',v:fmt(m.npv,2),s:'همت / نرخ مانع اسمی',st:statusClass(m.npv,'positive'),b:'NPV',page:'sensitivity',anchor:'chartTornado',spark:m.discCum},{t:'B/C',v:fmt(m.bc,2),s:'نسبت منفعت به هزینه',st:statusClass(m.bc,'ratio'),b:'B/C',page:'cashflow',anchor:'chartRevCost',spark:ratioTrend},{t:'بازگشت ساده',v:isFinite(m.pp)?fmt(m.pp,1):'—',s:'سال',st:statusClass(m.pp,'payback'),b:'PP',page:'cashflow',anchor:'paybackTrendCard',spark:m.cum},{t:'بازگشت تنزیلی',v:isFinite(m.dpbp)?fmt(m.dpbp,1):'—',s:'سال',st:statusClass(m.dpbp,'discountedPayback'),b:'DPBP',page:'cashflow',anchor:'chartDiscountedCum',spark:m.discCum}];qs('kpiGrid').innerHTML=k.map(x=>`<div class="kpi-card drill ${x.st}" data-page="${x.page}" data-anchor="${x.anchor}" title="مشاهده جزئیات"><span class="metric-glyph">${x.b}</span><div class="kpi-spark">${sparkline(x.spark)}</div><div class="kpi-head"><span>${x.t}</span><i class="status ${x.st}"></i></div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.s}</div><span class="delta ${x.st==='red'?'down':x.st==='yellow'?'warn':'up'}">جزئیات</span></div>`).join('');document.querySelectorAll('.kpi-card.drill').forEach(c=>c.onclick=()=>showPage(c.dataset.page,c.dataset.anchor));qs('smartMessage').className='warning '+((m.npv>0&&m.irrNom>state.discount)?'good':m.npv<0?'bad':'');qs('smartMessage').innerHTML=smartText(m)}
 function smartText(m){if(m.npv<0)return'هشدار: در سناریوی جاری، NPV منفی شده است. ترکیب نرخ تنزیل، افت درآمد، افزایش هزینه یا تأخیر فروش باید بازنگری شود.';if(m.irrNom<state.discount)return'هشدار: IRR اسمی از نرخ تنزیل پایین‌تر است؛ حاشیه ایمنی بازده از بین رفته و پروژه مشروط تلقی می‌شود.';if(state.salesDelay>0||state.costShock>0||state.revenueShock<0)return'سناریوی جاری تحت فشار قرار دارد؛ شاخص‌ها هنوز مثبت‌اند اما باید با سناریوی پایه مقایسه شوند.';return'سناریوی جاری از نظر شاخص‌های کلان مثبت است. IRR بالاتر از نرخ تنزیل و NPV مثبت باقی مانده است.'}
 function renderRisk(m){const margin=m.irrNom-state.discount;const feasibilityStatus=(m.npv>0&&margin>0)?'green':(m.npv>0?'yellow':'red');const feasibilityText=feasibilityStatus==='green'?'توجیه‌دار':(feasibilityStatus==='yellow'?'مشروط':'نیازمند بازنگری');const feasibilityGlyph=feasibilityStatus==='green'?'OK':(feasibilityStatus==='yellow'?'WATCH':'REV');const c=[['حاشیه ایمنی بازده',fmt(margin,1)+'٪','فاصله IRR اسمی از نرخ تنزیل',statusClass(margin,'margin'),'SAFE','این شاخص نشان می‌دهد نرخ بازده داخلی پروژه چند واحد درصد بالاتر یا پایین‌تر از نرخ تنزیل است. مقدار مثبت یعنی بازده پروژه از نرخ مانع عبور کرده و مقدار منفی یعنی پروژه از نظر بازده تحت فشار است.'],['سال سربه‌سری نقدی',m.breakYear?`سال ${m.breakYear}`:'—','عبور تجمعی از منفی به مثبت',m.breakYear&&m.breakYear<=6?'green':'yellow','BE','اولین سالی است که جریان نقدی تجمعی پروژه از وضعیت منفی عبور می‌کند و به محدوده مثبت می‌رسد. هرچه این سال زودتر باشد، ریسک نقدینگی پروژه کمتر است.'],['حداکثر کسری نقدی تجمعی',fmt(m.minCum,2),'همت',m.minCum>-100?'yellow':'red','GAP','بیشترین مقدار منفی جریان نقدی تجمعی در طول دوره تحلیل است؛ یعنی بیشترین شکاف نقدینگی که پروژه قبل از رسیدن به نقطه بازگشت سرمایه تجربه می‌کند.'],['وضعیت توجیه‌پذیری',feasibilityText,'بر اساس شاخص‌های جاری',feasibilityStatus,feasibilityGlyph,'جمع‌بندی مدیریتی از وضعیت پروژه بر اساس NPV و فاصله IRR از نرخ تنزیل است. اگر NPV منفی یا حاشیه بازده منفی باشد، پروژه در سناریوی جاری توجیه‌پذیر تلقی نمی‌شود و نیازمند بازنگری است.']];qs('riskCards').innerHTML=c.map(x=>`<div class="kpi-card risk-card" data-risk-tip="${x[5]}"><span class="metric-glyph">${x[4]}</span><div class="kpi-head"><span>${x[0]}</span><i class="status ${x[3]}"></i></div><div class="kpi-value" style="font-size:24px">${x[1]}</div><div class="kpi-sub">${x[2]}</div></div>`).join('')}
 function renderCharts(m){lineChart('chartCum',m.years,[{name:'جریان نقدی تجمعی',values:m.cum,color:color('--cyan'),fill:'rgba(68,215,223,.10)',area:true},{name:'سربه‌سری',values:m.years.map(_=>0),color:color('--red')}]);renderRevenueMix();lineChart('chartAssumptionImpact',m.years,[{name:'جریان نقدی آزاد',values:m.fcf,color:color('--gold')},{name:'تنزیل‌شده',values:m.discFcf,color:color('--cyan')}]);renderRevenueItemsChart();renderCostChart();lineChart('chartRevCost',m.years,[{name:'درآمد',values:m.revenue,color:color('--green')},{name:'هزینه',values:m.cost,color:color('--red')},{name:'مالیات',values:m.tax,color:color('--gold')}]);lineChart('chartDiscountedCum',m.years,[{name:'تجمعی تنزیل‌شده',values:m.discCum,color:color('--purple'),fill:'rgba(167,139,250,.10)',area:true},{name:'سربه‌سری',values:m.years.map(_=>0),color:color('--red')}]);renderPaybackTrend(m);renderTornado();renderIRRSensitivity();drawCompareChart()}
 
 
+
 function ensurePaybackTrendPlugin(){
-  if(!window.Chart||window.__paybackTrendPluginReady)return;
+  if(!window.Chart||window.__paybackTrendPluginV55Ready)return;
   const roundRect=(ctx,x,y,w,h,r)=>{
     const rr=Math.min(r,Math.abs(w)/2,Math.abs(h)/2);
     ctx.beginPath();
@@ -1279,11 +1290,6 @@ function ensurePaybackTrendPlugin(){
     const meta=chart.getDatasetMeta(datasetIndex);
     const points=meta?.data||[];
     if(!points.length)return null;
-    /*
-      مهم: در محور category، getPixelForTick با فعال بودن autoSkip روی موبایل،
-      به تیک‌های نمایشی قفل می‌شود و نشانگر را به سال اشتباه می‌برد.
-      بنابراین مختصات افقی نشانگر از خود نقاط واقعی دیتاست خطی گرفته می‌شود.
-    */
     const pos=Math.max(0,Math.min(points.length-1,payback-1));
     const lo=Math.floor(pos);
     const hi=Math.min(points.length-1,lo+1);
@@ -1295,7 +1301,7 @@ function ensurePaybackTrendPlugin(){
     return x0+(x1-x0)*f;
   };
   const plugin={
-    id:'paybackMarkers',
+    id:'paybackMarkersV55',
     beforeDatasetsDraw(chart,args,opts){
       if(chart.canvas?.parentElement?.id!=='chartPaybackTrend')return;
       const {ctx,chartArea,scales}=chart;
@@ -1305,174 +1311,128 @@ function ensurePaybackTrendPlugin(){
       const zero=y.getPixelForValue(0);
       ctx.save();
       if(zero>=top&&zero<=bottom){
-        ctx.fillStyle='rgba(255,79,106,.085)';
+        ctx.fillStyle='rgba(255,79,106,.07)';
         ctx.fillRect(left,zero,right-left,bottom-zero);
-        ctx.fillStyle='rgba(49,231,255,.038)';
+        ctx.fillStyle='rgba(49,231,255,.032)';
         ctx.fillRect(left,top,right-left,zero-top);
-        ctx.shadowColor='rgba(255,255,255,.25)';
-        ctx.shadowBlur=11;
-        ctx.strokeStyle='rgba(238,247,255,.88)';
-        ctx.lineWidth=2.4;
+        ctx.strokeStyle='rgba(238,247,255,.82)';
+        ctx.lineWidth=2;
         ctx.setLineDash([]);
         ctx.beginPath();
         ctx.moveTo(left,zero);
         ctx.lineTo(right,zero);
         ctx.stroke();
-        ctx.shadowBlur=0;
-        ctx.font='800 11px Vazirmatn, sans-serif';
-        ctx.fillStyle='rgba(230,244,255,.82)';
-        ctx.textAlign='left';
-        ctx.direction='rtl';
-        ctx.fillText('خط سربه‌سری تجمعی',left+10,Math.max(top+18,zero-10));
+        if(!opts?.mobile){
+          ctx.font='800 11px Vazirmatn, sans-serif';
+          ctx.fillStyle='rgba(230,244,255,.80)';
+          ctx.textAlign='left';
+          ctx.direction='rtl';
+          ctx.fillText('خط سربه‌سری تجمعی',left+10,Math.max(top+18,zero-10));
+        }
       }
       ctx.restore();
     },
     afterDatasetsDraw(chart,args,opts){
       if(chart.canvas?.parentElement?.id!=='chartPaybackTrend')return;
       const {ctx,chartArea,scales}=chart;
-      const x=scales.x,y=scales.y;
-      if(!chartArea||!x||!y||!opts)return;
+      const y=scales.y;
+      if(!chartArea||!y||!opts)return;
       const {top,bottom,left,right}=chartArea;
       const zero=y.getPixelForValue(0);
-      const width=right-left;
-      const mobileMode=!!opts.mobileMode;
-      const compact=mobileMode || width<640;
-      const ultraCompact=width<430;
+      const mobile=!!opts.mobile;
+      const simpleX=pxForPayback(chart,opts.simpleDatasetIndex??0,opts.simplePayback);
+      const discountedX=pxForPayback(chart,opts.discountedDatasetIndex??1,opts.discountedPayback);
       const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-      const circleR=ultraCompact?10:(compact?12:14);
-      const diamondR=ultraCompact?11:(compact?13:15);
-      const drawMarker=(xPos,color,shape)=>{
-        if(xPos==null||!isFinite(xPos)||zero<top||zero>bottom)return;
-        const outerR=shape==='diamond'?diamondR:circleR;
-        const innerR=shape==='diamond'?(ultraCompact?4:5):(ultraCompact?4.2:5.2);
+      const drawFlag=(xPos,title,value,color,row,side)=>{
+        if(xPos==null||!isFinite(xPos))return;
         ctx.save();
-        ctx.shadowColor=color;
-        ctx.shadowBlur=14;
-        if(shape==='diamond'){
-          ctx.beginPath();
-          ctx.moveTo(xPos,zero-outerR);ctx.lineTo(xPos+outerR,zero);ctx.lineTo(xPos,zero+outerR);ctx.lineTo(xPos-outerR,zero);ctx.closePath();
-          ctx.fillStyle='rgba(4,13,24,.96)';ctx.fill();
-          ctx.lineWidth=ultraCompact?3.2:3.8;ctx.strokeStyle=color;ctx.stroke();
-          ctx.shadowBlur=0;
-          ctx.beginPath();ctx.moveTo(xPos,zero-innerR);ctx.lineTo(xPos+innerR,zero);ctx.lineTo(xPos,zero+innerR);ctx.lineTo(xPos-innerR,zero);ctx.closePath();ctx.fillStyle=color;ctx.fill();
-        }else{
-          ctx.beginPath();ctx.arc(xPos,zero,outerR,0,Math.PI*2);
-          ctx.fillStyle='rgba(4,13,24,.96)';ctx.fill();
-          ctx.lineWidth=ultraCompact?3.2:3.8;ctx.strokeStyle=color;ctx.stroke();
-          ctx.shadowBlur=0;
-          ctx.beginPath();ctx.arc(xPos,zero,innerR,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
-        }
-        ctx.restore();
-      };
-      const drawFlag=(xPos,label,sub,color,cfg={})=>{
-        if(xPos==null||!isFinite(xPos)||zero<top||zero>bottom)return;
-        const bubbleW=mobileMode?(ultraCompact?96:112):(ultraCompact?92:(compact?108:140));
-        const bubbleH=mobileMode?(ultraCompact?40:44):(ultraCompact?34:(compact?40:44));
-        const markerShape=cfg.shape||'circle';
-        const markerR=markerShape==='diamond'?diamondR:circleR;
-        const safeX=clamp(xPos,left+markerR+8,right-markerR-8);
-        const desiredX = safeX + (cfg.shiftX || 0);
-        const bubbleX=clamp(desiredX-bubbleW/2,left+6,right-bubbleW-6);
-        const bubbleY=clamp(cfg.yLane ?? top+10, top+6, Math.max(top+6, zero-bubbleH-10));
-        const anchorX=clamp(bubbleX+bubbleW/2,left+14,right-14);
-        const anchorY=bubbleY+bubbleH;
-        const targetY=zero-(markerR+4);
-        ctx.save();
+        ctx.strokeStyle=color;
+        ctx.lineWidth=mobile?1.4:1.8;
         ctx.setLineDash([5,5]);
-        ctx.lineWidth=1.15;
-        ctx.strokeStyle=color;
-        ctx.globalAlpha=.72;
-        ctx.beginPath();ctx.moveTo(xPos,top+8);ctx.lineTo(xPos,bottom-8);ctx.stroke();
-        ctx.globalAlpha=1;
-        ctx.setLineDash([]);
-        ctx.lineWidth=1.2;
-        ctx.strokeStyle=color;
-        ctx.shadowColor=color;
-        ctx.shadowBlur=10;
         ctx.beginPath();
-        ctx.moveTo(anchorX,anchorY);
-        const bendY = bubbleY + bubbleH + Math.max(12, (targetY-anchorY)*0.42);
-        ctx.quadraticCurveTo(anchorX,bendY,xPos,targetY);
+        ctx.moveTo(xPos,top);
+        ctx.lineTo(xPos,bottom);
         ctx.stroke();
-        ctx.shadowBlur=16;
+        ctx.setLineDash([]);
+        if(zero>=top&&zero<=bottom){
+          ctx.shadowColor=color;
+          ctx.shadowBlur=10;
+          ctx.fillStyle='rgba(5,14,25,.98)';
+          ctx.beginPath();
+          ctx.arc(xPos,zero,mobile?5.4:6.8,0,Math.PI*2);
+          ctx.fill();
+          ctx.lineWidth=mobile?2.4:3;
+          ctx.strokeStyle=color;
+          ctx.stroke();
+          ctx.shadowBlur=0;
+        }
+        const w=mobile?132:154;
+        const h=mobile?38:42;
+        const yBox=top+(mobile?(row===0?6:52):(row===0?8:58));
+        let xBox=side==='left'?xPos-w-8:xPos+8;
+        xBox=clamp(xBox,left+4,right-w-4);
+        ctx.shadowColor='rgba(0,0,0,.32)';
+        ctx.shadowBlur=12;
+        roundRect(ctx,xBox,yBox,w,h,12);
         ctx.fillStyle='rgba(4,13,24,.96)';
-        ctx.strokeStyle=color;
-        roundRect(ctx,bubbleX,bubbleY,bubbleW,bubbleH,ultraCompact?12:14);
-        ctx.fill();ctx.stroke();
+        ctx.fill();
         ctx.shadowBlur=0;
-        ctx.textAlign='center';
+        ctx.lineWidth=1.3;
+        ctx.strokeStyle=color;
+        ctx.stroke();
         ctx.direction='rtl';
-        ctx.font=`800 ${ultraCompact?8.8:(compact?9.6:11)}px Vazirmatn, sans-serif`;
-        ctx.fillStyle='#f7fdff';
-        ctx.fillText(label,bubbleX+bubbleW/2,bubbleY+(ultraCompact?14:(compact?16:17)));
-        ctx.font=`800 ${ultraCompact?8:(compact?8.7:10)}px Vazirmatn, sans-serif`;
+        ctx.textAlign='right';
         ctx.fillStyle=color;
-        ctx.fillText(sub,bubbleX+bubbleW/2,bubbleY+(ultraCompact?27:(compact?30:34)));
+        ctx.font=(mobile?'800 10px ':'850 11px ')+'Vazirmatn, sans-serif';
+        ctx.fillText(title,xBox+w-9,yBox+15);
+        ctx.fillStyle='rgba(239,249,255,.96)';
+        ctx.font=(mobile?'950 13px ':'950 15px ')+'Vazirmatn, sans-serif';
+        ctx.fillText(value,xBox+w-9,yBox+h-8);
         ctx.restore();
-        drawMarker(xPos,color,markerShape);
       };
-      const simpleDatasetIndex=chart.data.datasets.findIndex(d=>d.label==='جریان تجمعی ساده');
-      const discountedDatasetIndex=chart.data.datasets.findIndex(d=>d.label==='جریان تجمعی تنزیل‌شده');
-      const simpleX=pxForPayback(chart,simpleDatasetIndex,opts.simplePayback);
-      const discountedX=pxForPayback(chart,discountedDatasetIndex,opts.discountedPayback);
-      const gap=(simpleX!=null&&discountedX!=null)?Math.abs(discountedX-simpleX):999;
-      const closeMarkers=gap < (ultraCompact?84:(compact?118:150));
-      let simpleCfg, discountedCfg;
-      if(compact){
-        simpleCfg={yLane:top+(ultraCompact?16:20),shiftX:closeMarkers?-18:0,shape:'circle'};
-        discountedCfg={yLane:top+(ultraCompact?70:82),shiftX:closeMarkers?18:0,shape:'diamond'};
-        if(closeMarkers){
-          simpleCfg.yLane=top+(ultraCompact?14:18);
-          discountedCfg.yLane=top+(ultraCompact?72:84);
-        }
-      }else{
-        simpleCfg={yLane:top+54,shiftX:-68,shape:'circle'};
-        discountedCfg={yLane:top+14,shiftX:72,shape:'diamond'};
-        if(closeMarkers){
-          simpleCfg.yLane=top+70; simpleCfg.shiftX=-54;
-          discountedCfg.yLane=top+12; discountedCfg.shiftX=58;
-        }
-      }
-      drawFlag(simpleX,opts.mobileMode?'بازگشت ساده':'بازگشت ساده',`${fmt(opts.simplePayback,1)} سال`,opts.simpleColor||'#9aff5f',simpleCfg);
-      drawFlag(discountedX,opts.mobileMode?'بازگشت تنزیلی':'بازگشت تنزیل‌شده',`${fmt(opts.discountedPayback,1)} سال`,opts.discountedColor||'#25dfff',discountedCfg);
+      drawFlag(simpleX,'PP بازگشت ساده',`${fmt(opts.simplePayback,1)} سال`,opts.simpleColor||'#9aff5f',0,'right');
+      drawFlag(discountedX,'DPBP بازگشت تنزیلی',`${fmt(opts.discountedPayback,1)} سال`,opts.discountedColor||'#25dfff',1,'left');
     }
   };
-  try{Chart.register(plugin);window.__paybackTrendPluginReady=true;}catch(e){window.__paybackTrendPluginReady=true;}
+  try{Chart.register(plugin);window.__paybackTrendPluginV55Ready=true;}catch(e){window.__paybackTrendPluginV55Ready=true;}
 }
+
 
 function renderPaybackTrend(m){
   const el=qs('chartPaybackTrend');
   if(!el||!window.Chart)return;
   ensurePaybackTrendPlugin();
+  const isMobile=window.innerWidth<=680;
   const labels=m.years.map(y=>'سال '+y);
-  const isMobilePayback=window.innerWidth<=760;
   const simpleColor='#9aff5f';
   const discountedColor='#25dfff';
   const annualColors=m.fcf.map(v=>v>=0?'rgba(255,181,67,.82)':'rgba(255,76,106,.72)');
-  const allVals=(isMobilePayback?[...m.cum,...m.discCum,0]:[...m.fcf,...m.cum,...m.discCum,0]).filter(v=>Number.isFinite(v));
+  const allVals=(isMobile?[...m.cum,...m.discCum,0]:[...m.fcf,...m.cum,...m.discCum,0]).filter(v=>Number.isFinite(v));
   const rawMin=Math.min(...allVals), rawMax=Math.max(...allVals);
   const rawSpan=Math.max(1,rawMax-rawMin);
-  let yMax=rawMax+rawSpan*.16;
-  let yMin=rawMin-rawSpan*.16;
-  yMin=Math.min(yMin,-Math.abs(yMax)*.36);
-  yMax=Math.max(yMax,Math.abs(yMin)*1.35);
-  makeChart('chartPaybackTrend','bar',{
-    labels,
-    datasets:(isMobilePayback?[
-      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.30,borderWidth:3.2,pointRadius:2.4,pointHoverRadius:7,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:2.2,pointStyle:'circle',fill:false,order:1},
-      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.30,borderWidth:3.8,pointRadius:2.8,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:2.3,pointStyle:'rectRot',fill:false,order:2},
-      {type:'line',label:'خط سربه‌سری',data:m.years.map(_=>0),borderColor:'rgba(242,248,255,.72)',borderWidth:2.2,pointRadius:0,fill:false,order:3}
-    ]:[
+  let yMax=rawMax+rawSpan*(isMobile?.20:.16);
+  let yMin=rawMin-rawSpan*(isMobile?.22:.16);
+  yMin=Math.min(yMin,-Math.abs(yMax)*(isMobile?.22:.36));
+  yMax=Math.max(yMax,Math.abs(yMin)*(isMobile?1.18:1.35));
+
+  const lineSimple={type:'line',label:isMobile?'تجمعی ساده':'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:isMobile?3.2:3.8,pointRadius:isMobile?2.8:4,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:isMobile?2.1:2.6,pointStyle:'circle',fill:false,order:1};
+  const lineDiscounted={type:'line',label:isMobile?'تجمعی تنزیلی':'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:isMobile?3.8:4.8,pointRadius:isMobile?3.2:4.5,pointHoverRadius:9,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:isMobile?2.2:2.8,pointStyle:'rectRot',fill:false,order:2};
+  const zeroLine={type:'line',label:'خط سربه‌سری',data:m.years.map(_=>0),borderColor:'rgba(242,248,255,.72)',borderWidth:isMobile?1.8:2.5,pointRadius:0,fill:false,order:3};
+  const datasets=isMobile
+    ? [lineSimple,lineDiscounted,zeroLine]
+    : [
       {type:'bar',label:'جریان نقدی آزاد سالانه',data:m.fcf,backgroundColor:annualColors,borderColor:'rgba(255,255,255,.20)',borderWidth:1,borderRadius:10,barPercentage:.54,categoryPercentage:.72,order:5},
-      {type:'line',label:'جریان تجمعی ساده',data:m.cum,borderColor:simpleColor,backgroundColor:'rgba(154,255,95,.12)',tension:.34,borderWidth:3.8,pointRadius:4,pointHoverRadius:8,pointBackgroundColor:'#08131e',pointBorderColor:simpleColor,pointBorderWidth:2.6,pointStyle:'circle',fill:false,order:1},
-      {type:'line',label:'جریان تجمعی تنزیل‌شده',data:m.discCum,borderColor:discountedColor,backgroundColor:'rgba(37,223,255,.12)',tension:.34,borderWidth:4.8,pointRadius:4.5,pointHoverRadius:9,pointBackgroundColor:'#08131e',pointBorderColor:discountedColor,pointBorderWidth:2.8,pointStyle:'rectRot',fill:false,order:2},
-      {type:'line',label:'خط سربه‌سری',data:m.years.map(_=>0),borderColor:'rgba(242,248,255,.72)',borderWidth:2.5,pointRadius:0,fill:false,order:3}
-    ])
+      lineSimple,lineDiscounted,zeroLine
+    ];
+
+  makeChart('chartPaybackTrend',isMobile?'line':'bar',{
+    labels,
+    datasets
   },{
-    layout:{padding:{top:isMobilePayback?92:58,right:isMobilePayback?8:16,left:8,bottom:isMobilePayback?10:4}},
+    layout:{padding:{top:isMobile?104:58,right:isMobile?8:16,left:isMobile?0:8,bottom:isMobile?8:4}},
     plugins:{
-      paybackMarkers:{years:m.years,simplePayback:m.pp,discountedPayback:m.dpbp,simpleColor,discountedColor,mobileMode:isMobilePayback},
-      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:isMobilePayback?8:14,font:{size:window.innerWidth<680?9:12},filter:item=>item.text!=='خط سربه‌سری'&&(!isMobilePayback||item.text!=='جریان نقدی آزاد سالانه')}},
+      paybackMarkersV55:{mobile:isMobile,years:m.years,simpleDatasetIndex:isMobile?0:1,discountedDatasetIndex:isMobile?1:2,simplePayback:m.pp,discountedPayback:m.dpbp,simpleColor,discountedColor},
+      legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:isMobile?10:14,font:{size:isMobile?10:12},filter:item=>item.text!=='خط سربه‌سری'}},
       tooltip:{callbacks:{
         label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.parsed.y,1)} همت`,
         afterBody:items=>{
@@ -1485,8 +1445,8 @@ function renderPaybackTrend(m){
       }}
     },
     scales:{
-      x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,font:{size:window.innerWidth<680?9:12},color:'rgba(224,240,255,.82)',callback:function(value,index){return isMobilePayback?(index%2===0?this.getLabelForValue(value):''):this.getLabelForValue(value);}}},
-      y:{min:yMin,max:yMax,grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,.58)':(ctx.tick.value<0?'rgba(255,95,120,.12)':'rgba(255,255,255,.075)'),lineWidth:ctx=>ctx.tick.value===0?2:1},ticks:{callback:v=>fmt(v,0),color:ctx=>ctx.tick.value<0?'rgba(255,157,171,.88)':'rgba(214,232,247,.76)'}}
+      x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:false,font:{size:isMobile?9:12},color:'rgba(224,240,255,.82)',callback:function(value,index){if(isMobile){const yr=m.years[index];return (yr===1||yr===20||yr%3===1)?'سال '+yr:'';}return this.getLabelForValue(value);}}},
+      y:{min:yMin,max:yMax,grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,.58)':(ctx.tick.value<0?'rgba(255,95,120,.12)':'rgba(255,255,255,.075)'),lineWidth:ctx=>ctx.tick.value===0?2:1},ticks:{font:{size:isMobile?9:11},maxTicksLimit:isMobile?6:8,callback:v=>Math.abs(v)>=1000?fmt(v/1000,0)+'k':fmt(v,0),color:ctx=>ctx.tick.value<0?'rgba(255,157,171,.88)':'rgba(214,232,247,.76)'}}
     }
   });
   const s=qs('paybackTrendSummary');
@@ -1494,8 +1454,8 @@ function renderPaybackTrend(m){
     const diff=(isFinite(m.pp)&&isFinite(m.dpbp))?m.dpbp-m.pp:null;
     const finalCum=m.cum[m.cum.length-1], finalDisc=m.discCum[m.discCum.length-1];
     s.innerHTML=`
-      <div class="payback-sum-card green"><b>بازگشت ساده</b><strong>${isFinite(m.pp)?fmt(m.pp,1):'—'} سال</strong><span>عبور جریان تجمعی ساده از خط سربه‌سری</span></div>
-      <div class="payback-sum-card cyan"><b>بازگشت تنزیل‌شده</b><strong>${isFinite(m.dpbp)?fmt(m.dpbp,1):'—'} سال</strong><span>عبور جریان تجمعی تنزیل‌شده با نرخ ${fmt(state.discount,0)}٪</span></div>
+      <div class="payback-sum-card green mobile-focus"><b>بازگشت ساده</b><strong>${isFinite(m.pp)?fmt(m.pp,1):'—'} سال</strong><span>عبور جریان تجمعی ساده از خط سربه‌سری</span></div>
+      <div class="payback-sum-card cyan mobile-focus"><b>بازگشت تنزیل‌شده</b><strong>${isFinite(m.dpbp)?fmt(m.dpbp,1):'—'} سال</strong><span>عبور جریان تجمعی تنزیل‌شده با نرخ ${fmt(state.discount,0)}٪</span></div>
       <div class="payback-sum-card ${finalDisc>=0?'gold':'red'}"><b>فاصله دو بازگشت</b><strong>${diff!==null?fmt(diff,1):'—'} سال</strong><span>جریان تجمعی نهایی: ${fmt(finalCum,1)} همت؛ تنزیل‌شده: ${fmt(finalDisc,1)} همت.</span></div>
     `;
   }
@@ -1975,7 +1935,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <div class="insight-chip ${margin>=0?'up':'down'}"><span>حاشیه بازده</span><strong>${f(margin,1)}٪</strong></div>
         <div class="insight-chip ${m.realIrr>=0?'up':'down'}"><span>IRR واقعی</span><strong>${f(m.realIrr,1)}٪</strong></div>
         <div class="insight-chip ${m.bc>=1?'up':'down'}"><span>B/C</span><strong>${f(m.bc,2)}</strong></div>
-        <div class="insight-chip ${isFinite(m.dpbp)&&m.dpbp<=10?'up':'down'}"><span>DPBP</span><strong>${pay(m.dpbp)}</strong></div>
+        <div class="insight-chip ${isFinite(m.dpbp)&&m.dpbp<=7.5?'up':'down'}"><span>DPBP</span><strong>${pay(m.dpbp)}</strong></div>
       </div>`;
   };
   window.renderKpis=function(m){
@@ -1986,7 +1946,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       {t:'NPV اسمی',v:f(m.npv,2),s:'همت / ارزش فعلی خالص',st:statusClass(m.npv,'positive'),b:'NPV',action:'nav',page:'sensitivity',anchor:'chartTornado',tip:'تحلیل حساسیت NPV',spark:m.discCum},
       {t:'B/C',v:f(m.bc,2),s:`${m.bc>=1?'منفعت بیشتر از هزینه':'زیر آستانه توجیه'}`,st:statusClass(m.bc,'ratio'),b:'B/C',action:'nav',page:'cashflow',anchor:'chartRevCost',tip:'تحلیل بهره‌وری سرمایه در ورودی و خروجی',spark:ratioTrend},
       {t:'بازگشت ساده',v:isFinite(m.pp)?f(m.pp,1):'—',s:'سال / بدون تنزیل',st:statusClass(m.pp,'payback'),b:'PP',action:'nav',page:'cashflow',anchor:'paybackTrendCard',tip:'تحلیل روند بازگشت سرمایه ساده و تنزیل‌شده',spark:m.cum},
-      {t:'بازگشت تنزیلی',v:isFinite(m.dpbp)?f(m.dpbp,1):'—',s:'سال / با نرخ تنزیل',st:statusClass(m.dpbp,'payback'),b:'DPBP',action:'nav',page:'cashflow',anchor:'chartDiscountedCum',tip:'تحلیل دوره بازگشت تنزیل‌شده',spark:m.discCum}
+      {t:'بازگشت تنزیلی',v:isFinite(m.dpbp)?f(m.dpbp,1):'—',s:'سال / با نرخ تنزیل',st:statusClass(m.dpbp,'discountedPayback'),b:'DPBP',action:'nav',page:'cashflow',anchor:'chartDiscountedCum',tip:'تحلیل دوره بازگشت تنزیل‌شده',spark:m.discCum}
     ];
     const grid=document.getElementById('kpiGrid');if(!grid)return;grid.innerHTML=k.map(x=>`<div class="kpi-card drill ${x.st}" data-action="${x.action}" data-page="${x.page||''}" data-anchor="${x.anchor||''}" title="${x.tip}"><span class="metric-glyph">${x.b}</span><div class="kpi-spark">${sparkline(x.spark)}</div><div class="kpi-head"><span>${x.t}</span><i class="status ${x.st}"></i></div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.s}</div><span class="delta ${x.st==='red'?'down':x.st==='yellow'?'warn':'up'}">جزئیات</span></div>`).join('');
     grid.querySelectorAll('.kpi-card.drill').forEach(c=>{c.onclick=()=>{if(c.dataset.action==='realIrr')openRealIrrDrawer();else showPage(c.dataset.page,c.dataset.anchor)}});
@@ -3725,167 +3685,227 @@ html.v27-low-landscape[data-theme="light"] .mini-sidebar:not(.collapsed) .mini-l
 <!-- V51: restored stable V44 landuse map/scroll behavior; post-V44 experimental iframe/wheel patches removed. -->
 
 
-<style id="v53-mobile-cards-compact-two-column">
-/* V53: Mobile dashboard card layout refinement
-   Scope: mobile card grids only. No map, iframe, matrix, model, or navigation logic is changed. */
-@media (max-width:760px){
-  /* Overview KPI cards: prefer dense two-column layout on 5–7 inch phones. */
-  .page[data-page="overview"] .grid.kpi,
-  #kpiGrid.grid.kpi{
+<style id="v53-mobile-dashboard-card-density-fix">
+/* V53: Mobile dashboard density fix
+   هدف: نمایش کارت‌های داشبورد در موبایل به‌صورت چندستونه، بدون دستکاری منطق نقشه، iframe یا نمودارها. */
+@media (max-width:680px){
+  /* کارت‌های مدیریتی و خلاصه‌ها در همه صفحات، به جای تک‌ستونه، چندستونه نمایش داده شوند. */
+  .page:not([data-page="landuse"]) .grid.kpi,
+  .page:not([data-page="landuse"]) .grid.three,
+  .page:not([data-page="landuse"]) .grid.four,
+  .page:not([data-page="landuse"]) .grid.five,
+  .page:not([data-page="landuse"]) #riskCards,
+  .page:not([data-page="landuse"]) #cashSummary,
+  .page:not([data-page="landuse"]) #stressCards,
+  .page:not([data-page="landuse"]) #sensitivityMiniCards,
+  .page:not([data-page="landuse"]) .infographic-mosaic,
+  .page:not([data-page="landuse"]) .cash-timeline,
+  .page:not([data-page="landuse"]) .guide,
+  .page:not([data-page="landuse"]) .compare-row{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:8px!important;
   }
-  .page[data-page="overview"] .kpi-card,
-  #kpiGrid .kpi-card{
-    min-height:118px!important;
-    padding:10px 10px 9px!important;
-    border-radius:18px!important;
-    display:block!important;
-    overflow:hidden!important;
+
+  /* چارت‌ها و چیدمان‌های تحلیلی اصلی همچنان تمام‌عرض بمانند تا نمودارها فشرده نشوند. */
+  .page:not([data-page="landuse"]) .grid.two,
+  .page:not([data-page="landuse"]) .grid.two-even:not(#sensitivityMiniCards),
+  .page:not([data-page="landuse"]) .scenario-layout,
+  .page:not([data-page="landuse"]) .payback-layout{
+    grid-template-columns:1fr!important;
   }
-  .page[data-page="overview"] .kpi-head,
-  #kpiGrid .kpi-head{
-    font-size:10px!important;
+
+  /* کارت‌ها فشرده‌تر ولی خوانا بمانند. */
+  .page:not([data-page="landuse"]) .kpi-card,
+  .page:not([data-page="landuse"]) .cash-metric,
+  .page:not([data-page="landuse"]) .info-tile,
+  .page:not([data-page="landuse"]) .year-card,
+  .page:not([data-page="landuse"]) .guide-step,
+  .page:not([data-page="landuse"]) .scenario-item{
+    min-width:0!important;
+    border-radius:15px!important;
+  }
+
+  .page:not([data-page="landuse"]) .kpi-card{
+    display:block!important;
+    min-height:112px!important;
+    padding:9px 8px!important;
+  }
+  .page:not([data-page="landuse"]) .kpi-head{
+    font-size:9.5px!important;
     line-height:1.45!important;
     gap:5px!important;
-    align-items:center!important;
+    align-items:flex-start!important;
   }
-  .page[data-page="overview"] .kpi-head span:first-child,
-  #kpiGrid .kpi-head span:first-child{
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  .page[data-page="overview"] .status,
-  #kpiGrid .status{
-    width:8px!important;
-    height:8px!important;
-    min-width:8px!important;
-  }
-  .page[data-page="overview"] .kpi-value,
-  #kpiGrid .kpi-value{
-    font-size:clamp(20px,6.1vw,25px)!important;
+  .page:not([data-page="landuse"]) .kpi-value{
+    font-size:18px!important;
     line-height:1.2!important;
-    margin:8px 0 3px!important;
-    letter-spacing:-.35px!important;
-    text-align:right!important;
+    margin:7px 0 2px!important;
+    letter-spacing:-.2px!important;
   }
-  .page[data-page="overview"] .kpi-sub,
-  #kpiGrid .kpi-sub{
-    font-size:10px!important;
-    line-height:1.55!important;
+  .page:not([data-page="landuse"]) .kpi-sub{
+    font-size:9.3px!important;
+    line-height:1.45!important;
     white-space:normal!important;
-    overflow:visible!important;
-    text-overflow:clip!important;
-    max-width:100%!important;
   }
-  .page[data-page="overview"] .delta,
-  #kpiGrid .delta{
-    display:none!important;
-  }
-  .page[data-page="overview"] .metric-glyph,
-  #kpiGrid .metric-glyph{
+  .page:not([data-page="landuse"]) .metric-glyph{
     display:block!important;
-    font-size:38px!important;
+    font-size:31px!important;
     left:7px!important;
     bottom:5px!important;
     top:auto!important;
     transform:none!important;
-    letter-spacing:-3px!important;
-    opacity:.060!important;
-    z-index:0!important;
+    letter-spacing:-2px!important;
+    opacity:.075!important;
   }
-  .page[data-page="overview"] .kpi-spark,
-  #kpiGrid .kpi-spark{
+  .page:not([data-page="landuse"]) .kpi-spark,
+  .page:not([data-page="landuse"]) .cash-spark{
     display:block!important;
-    position:absolute!important;
-    left:8px!important;
-    right:8px!important;
-    bottom:6px!important;
-    height:22px!important;
-    opacity:.48!important;
-    z-index:0!important;
-    pointer-events:none!important;
-  }
-  .page[data-page="overview"] .kpi-spark svg,
-  #kpiGrid .kpi-spark svg{
-    display:block!important;
-    width:100%!important;
-    height:100%!important;
-    overflow:visible!important;
-  }
-  .page[data-page="overview"] .kpi-head,
-  .page[data-page="overview"] .kpi-value,
-  .page[data-page="overview"] .kpi-sub,
-  #kpiGrid .kpi-head,
-  #kpiGrid .kpi-value,
-  #kpiGrid .kpi-sub{
-    position:relative!important;
-    z-index:1!important;
+    height:19px!important;
+    opacity:.42!important;
   }
 
-  /* Keep numeric summary cards in other mobile pages compact, but do not touch charts/text panels. */
-  #riskCards.grid.four,
-  #stressCards.grid.four,
-  #cashSummary.grid.five,
-  #sensitivityMiniCards.grid.two-even{
+  .page:not([data-page="landuse"]) .cash-metric{min-height:96px!important;padding:9px!important;}
+  .page:not([data-page="landuse"]) .cash-metric strong{font-size:17px!important;margin-top:7px!important;}
+  .page:not([data-page="landuse"]) .cash-top{font-size:9.8px!important;line-height:1.45!important;}
+  .page:not([data-page="landuse"]) .cash-metric small{font-size:9.2px!important;line-height:1.45!important;}
+  .page:not([data-page="landuse"]) .cash-glyph{font-size:32px!important;left:7px!important;bottom:4px!important;opacity:.075!important;}
+
+  .page:not([data-page="landuse"]) .info-tile{padding:8px!important;}
+  .page:not([data-page="landuse"]) .info-title{font-size:10.5px!important;line-height:1.45!important;}
+  .page:not([data-page="landuse"]) .info-value{font-size:14px!important;}
+  .page:not([data-page="landuse"]) .info-meta{font-size:9.2px!important;line-height:1.45!important;margin:4px 0 5px!important;}
+
+  .page:not([data-page="landuse"]) .year-card{padding:8px!important;}
+  .page:not([data-page="landuse"]) .year-card h4{font-size:10.8px!important;margin-bottom:5px!important;}
+  .page:not([data-page="landuse"]) .year-metrics{font-size:9.2px!important;line-height:1.45!important;}
+
+  .page:not([data-page="landuse"]) .guide-step{padding:8px!important;}
+  .page:not([data-page="landuse"]) .guide-step b{font-size:10.5px!important;}
+  .page:not([data-page="landuse"]) .guide-step span{font-size:9.2px!important;line-height:1.45!important;}
+
+  /* کنترل‌ها هم در موبایل‌های معمولی دو ستونه بمانند، اما نمودارها دست‌نخورده باقی بمانند. */
+  .page:not([data-page="landuse"]) .inline-controls{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:8px!important;
-  }
-  #riskCards .kpi-card,
-  #stressCards .kpi-card,
-  #cashSummary .cash-metric,
-  #sensitivityMiniCards .kpi-card{
-    min-height:104px!important;
-    padding:10px!important;
-    border-radius:17px!important;
-    overflow:hidden!important;
-  }
-  #riskCards .kpi-spark,
-  #stressCards .kpi-spark,
-  #sensitivityMiniCards .kpi-spark,
-  #cashSummary .cash-spark{
-    display:block!important;
-    opacity:.40!important;
   }
 }
 
-/* Override older V21 max-width:390 single-column rule for normal 5–7 inch phones. */
-@media (max-width:390px) and (min-width:331px){
-  .page[data-page="overview"] .grid.kpi,
-  #kpiGrid.grid.kpi{
+@media (min-width:431px) and (max-width:680px){
+  /* موبایل‌های ۵ تا ۷ اینچ: دید اول مشابه اسکرین‌شات چندستونه‌تر باشد. */
+  .page:not([data-page="landuse"]) .grid.kpi,
+  .page:not([data-page="landuse"]) #cashSummary,
+  .page:not([data-page="landuse"]) #stressCards{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .page:not([data-page="landuse"]) .kpi-card{min-height:108px!important;}
+  .page:not([data-page="landuse"]) .kpi-value{font-size:18px!important;}
+}
+
+@media (max-width:430px){
+  /* موبایل‌های باریک: همچنان دو ستونه، نه تک‌ستونه؛ برای جلوگیری از کارت‌های عریض و اسکرول زیاد. */
+  .page:not([data-page="landuse"]) .grid.kpi,
+  .page:not([data-page="landuse"]) .grid.three,
+  .page:not([data-page="landuse"]) .grid.four,
+  .page:not([data-page="landuse"]) .grid.five,
+  .page:not([data-page="landuse"]) #riskCards,
+  .page:not([data-page="landuse"]) #cashSummary,
+  .page:not([data-page="landuse"]) #stressCards,
+  .page:not([data-page="landuse"]) #sensitivityMiniCards,
+  .page:not([data-page="landuse"]) .infographic-mosaic,
+  .page:not([data-page="landuse"]) .cash-timeline,
+  .page:not([data-page="landuse"]) .guide,
+  .page:not([data-page="landuse"]) .compare-row{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:7px!important;
   }
-  .page[data-page="overview"] .kpi-card,
-  #kpiGrid .kpi-card{
-    min-height:112px!important;
+
+  .page:not([data-page="landuse"]) .kpi-card{
     display:block!important;
-    padding:9px 9px 8px!important;
+    grid-template-columns:none!important;
+    min-height:108px!important;
   }
-  .page[data-page="overview"] .kpi-value,
-  #kpiGrid .kpi-value{
-    font-size:clamp(19px,6.5vw,23px)!important;
-    margin:7px 0 3px!important;
-    text-align:right!important;
+  .page:not([data-page="landuse"]) .kpi-head,
+  .page:not([data-page="landuse"]) .kpi-value,
+  .page:not([data-page="landuse"]) .kpi-sub{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    text-align:initial!important;
   }
-  .page[data-page="overview"] .kpi-spark,
-  #kpiGrid .kpi-spark{
+  .page:not([data-page="landuse"]) .kpi-value{
+    font-size:17px!important;
+    margin:7px 0 2px!important;
+  }
+  .page:not([data-page="landuse"]) .kpi-spark{
     display:block!important;
-    height:20px!important;
+    height:18px!important;
   }
 }
 
-/* Ultra-narrow safety fallback only. */
-@media (max-width:330px){
-  .page[data-page="overview"] .grid.kpi,
-  #kpiGrid.grid.kpi{
+@media (max-width:340px){
+  /* فقط برای نمایشگرهای بسیار باریک، به‌خاطر خوانایی، کارت‌ها تک‌ستونه شوند. */
+  .page:not([data-page="landuse"]) .grid.kpi,
+  .page:not([data-page="landuse"]) .grid.three,
+  .page:not([data-page="landuse"]) .grid.four,
+  .page:not([data-page="landuse"]) .grid.five,
+  .page:not([data-page="landuse"]) #riskCards,
+  .page:not([data-page="landuse"]) #cashSummary,
+  .page:not([data-page="landuse"]) #stressCards,
+  .page:not([data-page="landuse"]) #sensitivityMiniCards,
+  .page:not([data-page="landuse"]) .infographic-mosaic,
+  .page:not([data-page="landuse"]) .cash-timeline,
+  .page:not([data-page="landuse"]) .guide,
+  .page:not([data-page="landuse"]) .compare-row,
+  .page:not([data-page="landuse"]) .inline-controls{
     grid-template-columns:1fr!important;
   }
-  .page[data-page="overview"] .kpi-card,
-  #kpiGrid .kpi-card{
-    min-height:84px!important;
-  }
+}
+</style>
+
+
+<style id="v54-mobile-pinch-payback-fixes">
+/* V54: اصلاحات محدود موبایل؛ نقشه فقط Pinch Zoom گرفته و ساختار کلی داشبورد دست‌نخورده است. */
+@media(max-width:680px){
+  .payback-trend-card{margin-top:28px!important;overflow:visible!important;}
+  .payback-layout{grid-template-columns:1fr!important;gap:10px!important;}
+  .payback-summary{order:-1;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+  .payback-sum-card{padding:9px!important;border-radius:15px!important;min-height:86px!important;}
+  .payback-sum-card b{font-size:10.5px!important;margin-bottom:4px!important;}
+  .payback-sum-card strong{font-size:18px!important;line-height:1.35!important;}
+  .payback-sum-card span{font-size:9.2px!important;line-height:1.55!important;}
+  .payback-sum-card:nth-child(3){grid-column:1/-1!important;min-height:auto!important;}
+  .payback-box{height:430px!important;}
+  #chartPaybackTrend{overflow:visible!important;}
+}
+@media(max-width:430px){
+  .payback-box{height:450px!important;}
+  .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .payback-sum-card strong{font-size:17px!important;}
+}
+</style>
+
+
+<style id="v55-mobile-payback-view">
+/* V55: Mobile Payback View - خواناسازی نمودار بازگشت در موبایل بدون تغییر ساختار داشبورد */
+@media(max-width:680px){
+  .payback-trend-card{margin-top:24px!important;overflow:visible!important;}
+  .payback-head{margin-bottom:8px!important;}
+  .payback-head h3{font-size:14px!important;line-height:1.7!important;}
+  .payback-head span{font-size:10.5px!important;line-height:1.7!important;}
+  .payback-head b{font-size:10px!important;padding:5px 8px!important;}
+  .payback-layout{grid-template-columns:1fr!important;gap:10px!important;}
+  .payback-summary{order:-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+  .payback-sum-card.mobile-focus{min-height:82px!important;border-color:rgba(68,215,223,.22)!important;}
+  .payback-sum-card{padding:9px 10px!important;border-radius:15px!important;}
+  .payback-sum-card b{font-size:10.5px!important;margin-bottom:4px!important;}
+  .payback-sum-card strong{font-size:18px!important;line-height:1.35!important;}
+  .payback-sum-card span{font-size:9.3px!important;line-height:1.55!important;}
+  .payback-sum-card:nth-child(3){grid-column:1/-1!important;min-height:auto!important;padding:8px 10px!important;}
+  .payback-box{height:520px!important;min-height:520px!important;}
+  #chartPaybackTrend{overflow:visible!important;}
+}
+@media(max-width:430px){
+  .payback-box{height:540px!important;min-height:540px!important;}
+  .payback-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .payback-sum-card strong{font-size:17px!important;}
+  .payback-sum-card span{font-size:9px!important;}
 }
 </style>
 
